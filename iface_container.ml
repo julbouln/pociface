@@ -29,11 +29,15 @@ class iface_container c=
     inherit iface_object 0 0 as super
     val mutable content=c
 
+
     val mutable valign=IAlignMiddle
     val mutable halign=IAlignMiddle
+    val mutable fixed_size=true
 
     method set_valign v=valign<-v
     method set_halign h=halign<-h
+    method set_fixed_size i=
+      fixed_size<-i
 
     val mutable vrect=new rectangle 0 0 0 0 
     method get_vrect=vrect
@@ -136,22 +140,31 @@ class iface_container c=
       super#on_mouseout x y;
 
 
+    method size_from_fixed (orect:rectangle)=
+      let (mw,mh)=self#max_size() in
+	(if fixed_size then 
+	   (mw,mh) 
+	 else 
+	   (orect#get_w,orect#get_h));
+
     method pos_from_align (orect:rectangle)=
       let (mw,mh)=self#max_size() in
-      (
-	(match halign with
-	   | IAlignLeft -> 0
-	   | IAlignRight -> mw - orect#get_w
-	   | IAlignMiddle -> mw/2 - orect#get_w/2
-	   | _ -> 0
-	),
-	(match valign with
-	   | IAlignTop -> 0
-	   | IAlignBottom -> mh - orect#get_h
-	   | IAlignMiddle -> mh/2 - orect#get_h/2
-	   | _ -> 0
-	)
-      )
+	  (
+	    (match halign with
+	       | IAlignLeft -> 0
+	       | IAlignRight -> mw - orect#get_w
+	       | IAlignMiddle -> mw/2 - orect#get_w/2
+	       | _ -> 0
+	    ),
+	    (match valign with
+	       | IAlignTop -> 0
+	       | IAlignBottom -> mh - orect#get_h
+	       | IAlignMiddle -> mh/2 - orect#get_h/2
+	       | _ -> 0
+	    )
+	  )
+
+
 
 
     method move x y=
@@ -167,6 +180,19 @@ class iface_container c=
 	    h:=obj#get_rect#get_h;
 	  if obj#get_rect#get_w> !w then
 	    w:=obj#get_rect#get_w
+      );
+
+	(!w,!h)
+
+    method private vmax_size()=
+      let w=ref 0 in
+      let h=ref 0 in
+      self#foreach (
+	fun obj->
+	  if obj#get_vrect#get_h> !h then
+	    h:=obj#get_vrect#get_h;
+	  if obj#get_vrect#get_w> !w then
+	    w:=obj#get_vrect#get_w
       );
 	(!w,!h)
 
@@ -185,7 +211,7 @@ class iface_vcontainer c=
       let (mw,mh)=self#max_size() in	
       self#foreach (
       let f obj=
-	h:=!h+mh;
+	h:=!h+(if fixed_size then mh else obj#get_rect#get_h);
 	if obj#get_rect#get_w> !w then
 	  w:=obj#get_rect#get_w
       in f
@@ -194,9 +220,10 @@ class iface_vcontainer c=
 
       let vw=ref 0 in
       let vh=ref 0 in	
+      let (vmw,vmh)=self#vmax_size() in	
       self#foreach (
       let f obj=
-	vh:=!vh+obj#get_vrect#get_h;
+	vh:=!vh+(if fixed_size then vmh else obj#get_vrect#get_h);
 	if obj#get_vrect#get_w> !vw then
 	  vw:=obj#get_vrect#get_w
       in f
@@ -207,16 +234,19 @@ class iface_vcontainer c=
     method move x y=
       super#move x y;
       let (mw,mh)=self#max_size() in
+      let h=ref 0 in
       self#foreachi (
-	fun i obj->
+	fun i obj->	  
 	  let (ax,ay)=self#pos_from_align obj#get_rect in
-	  obj#move (x+ax) (y+ (mh*i)+ay)
+	  obj#move (x+ax) (y+( (if fixed_size then (mh*i)+ay else !h)));
+	  h:= !h+obj#get_rect#get_h;
       )
 
 
   end;;
 
-(** vertical container widget *)
+ (** horizontal container widget *)
+(* TODO : implement fixed_size *)
 class iface_hcontainer c=
   object (self)
     inherit iface_container c as super
@@ -227,7 +257,7 @@ class iface_hcontainer c=
       let (mw,mh)=self#max_size() in	
       self#foreach (
       let f obj=
-	w:=!w+mw;
+	w:=!w+(if fixed_size then mw else obj#get_rect#get_w);
 	if obj#get_rect#get_h> !h then
 	  h:=obj#get_rect#get_h
       in f
@@ -237,9 +267,10 @@ class iface_hcontainer c=
 
       let vw=ref 0 in
       let vh=ref 0 in	
+      let (vmw,vmh)=self#vmax_size() in	
       self#foreach (
       let f obj=
-	vw:=!vw+obj#get_vrect#get_w;
+	vw:=!vw+(if fixed_size then vmw else obj#get_vrect#get_w);
 	if obj#get_vrect#get_h> !vh then
 	  vh:=obj#get_vrect#get_h
       in f

@@ -41,40 +41,42 @@ let get_default_style n=
     (match n with
        | "iface_text_edit" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (new graphic_pattern "default:text_edit" (default_pattern(200,200,200) (0,0,0))));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" (default_pattern(200,200,200) (0,0,0))));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_text_edit_box" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (new graphic_pattern "default:text_edit" (default_pattern(200,200,200) (0,0,0))));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" (default_pattern(200,200,200) (0,0,0))));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_hcontainer" ->props#from_list
 	   [
 	     ("valign",IPropAlign IAlignMiddle);
-	     ("halign",IPropAlign IAlignMiddle)
+	     ("halign",IPropAlign IAlignMiddle);
+	     ("fixed_size",IPropBool true) 
 	   ]
        | "iface_vcontainer" ->props#from_list
 	   [
 	     ("valign",IPropAlign IAlignMiddle);
-	     ("halign",IPropAlign IAlignMiddle)
+	     ("halign",IPropAlign IAlignMiddle);
+	     ("fixed_size",IPropBool true) 
 	   ]
-	     
+     
        | "iface_menu" ->props#from_list
 	   [
-	     ("pattern",IPropPatternFun  (fun()->(new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0)))));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0)))));
 	   ]
        | "iface_menubar" ->props#from_list
 	   [
-	     ("pattern",IPropPatternFun  (fun()->(new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0)))));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0)))));
 	   ]
        | _ ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0))));
-	     ("pattern_normal",IPropPattern  (new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0))));
-	     ("pattern_clicked",IPropPattern  (new graphic_pattern "default_clicked" (default_pattern(64,64,64) (0,0,0))));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0))));
+	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default" (default_pattern(128,128,128) (0,0,0))));
+	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_clicked" (default_pattern(64,64,64) (0,0,0))));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ];

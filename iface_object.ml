@@ -113,10 +113,17 @@ object(self)
 
 	interp#set_module_val id "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
 	interp#set_module_val id "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-	
+
+(*
+	interp#set_module_val id "get_w" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_w));
+	interp#set_module_val id "get_h" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_h));
+	interp#set_module_val id "get_x" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_x));	
+	interp#set_module_val id "get_y" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_y));
+*)
 	interp#set_module_val id "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
 	interp#set_module_val id "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
 	interp#set_module_val id "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
+
 	interp#set_module_val id "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
 	interp#set_module_val id "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
 

@@ -23,12 +23,14 @@ open Oxml;;
 open Medias;;
 open Olua;;
 
+open Iface_properties;;
 open Iface_object;;
 open Iface_text;;
 open Iface_button;;
 open Iface_container;;
 open Iface_menu;;
-open Iface_properties;;
+open Iface_window;;
+
 
 open Iface_theme;;
 
@@ -330,6 +332,15 @@ object(self)
 	      ) in
 	  o#set_valign (iprop_align (props#get_prop "valign"));
 	  o#set_halign (iprop_align (props#get_prop "halign"));
+	  o#set_fixed_size (iprop_bool (props#get_prop "fixed_size"));
+(*
+	  if (iprop_bool (props#get_prop "fixed_size")) then (
+	    print_string "fixed_size!";print_newline()
+	  ) else (
+	    print_string "non fixed_size!";print_newline()
+	  );	    
+*)
+	  o#reset_size();
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
@@ -367,6 +378,7 @@ object(self)
 	      ) in
 	  o#set_valign (iprop_align (props#get_prop "valign"));
 	  o#set_halign (iprop_align (props#get_prop "halign"));
+	  o#set_fixed_size (iprop_bool (props#get_prop "fixed_size"));
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
@@ -408,7 +420,7 @@ let to_menu mt layer get_obj=
     let rec xmlmenu_to_menu men=
       match men with
 	| IMenu (n,m)->
-	    print_string ("parse MENU "^n);print_newline();
+(*	    print_string ("parse MENU "^n);print_newline(); *)
 	    
 	    let co=(get_obj n) in
 	      Menu (co,
@@ -420,7 +432,7 @@ let to_menu mt layer get_obj=
 		      let l=DynArray.to_list a in List.rev l
 		   )
 	| IMenuEntry n->
-	    print_string ("parse MENUENTRY "^n);print_newline();
+(*	    print_string ("parse MENUENTRY "^n);print_newline();*)
 	    MenuEntry (
 	      let co=(get_obj n) in
 		co
@@ -499,6 +511,46 @@ object(self)
     in
       (id,ofun)
 end;;
+
+
+(** iface window parser *)
+class xml_iface_window_parser get_obj=
+object(self)
+  inherit xml_iface_object_parser as super
+
+  val mutable cid=""
+  val mutable txt=""
+  method parse_child k v=
+    super#parse_child k v;
+    match k with
+      | "iface_object" -> let p=(new xml_string_parser "id") in p#parse v;cid<-p#get_val
+      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
+      | _ -> ()    
+
+ 
+  method get_val=
+    let ofun()=
+      let st=theme#get_style nm in
+	props#merge st;
+      let o=	
+	new iface_window id 
+	  (iprop_pattern (props#get_prop "pattern_title")) 
+	  (iprop_pattern (props#get_prop "pattern_title_min")) 
+	  (iprop_pattern (props#get_prop "pattern_background")) 
+	  (iprop_font (props#get_prop "font")) 
+	  (iprop_color (props#get_prop "foreground_color")) 
+	  (iprop_graphic (props#get_prop "close_button"))
+	  (iprop_graphic (props#get_prop "minimize_button"))
+	  (iprop_graphic (props#get_prop "maximize_button"))
+	  txt
+	  (get_obj cid) in
+	super#init_object o;
+	o
+    in
+      (id,ofun)
+end;;
+
+
 
 exception Xml_iface_parser_not_found of string;;
 

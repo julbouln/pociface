@@ -122,6 +122,27 @@ end;;
 
 (* NEW *)
 
+(** sample button widget *)
+class iface_graphic_button gr w h=
+  object
+    inherit iface_graphic_object gr w h as super
+    val mutable is_clicked=false
+    val mutable is_mouseover=false
+
+    method on_mouseover x y=super#on_mouseover x y;is_mouseover<-true
+    method on_mouseout x y=super#on_mouseout x y;is_mouseover<-false
+
+    method on_click x y=
+      is_clicked<-true;
+      graphic#set_cur_tile 1;
+      super#on_click x y
+
+    method on_release x y=
+      is_clicked<-false;
+      graphic#set_cur_tile 0;
+      super#on_release x y
+  end;;
+
 class iface_pbutton rid nptile cptile=
 object
   inherit iface_object 0 0 as super
@@ -182,7 +203,7 @@ object(self)
     method private init_size()=
       let (bw,bh)=ngr#border_size in
 
-	print_string "PBUTTON: ";print_int (label#get_rect#get_h mod bh);print_newline();
+(*	print_string "PBUTTON: ";print_int (label#get_rect#get_h mod bh);print_newline(); *)
 	super#resize (label#get_rect#get_w+(bw*2)) (label#get_rect#get_h+(bh*2))
 
     initializer

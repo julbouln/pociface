@@ -36,10 +36,11 @@ type iface_prop=
   | IPropAlign of iface_align
   | IPropPadding of int
   | IPropMargin of int
-  | IPropPattern of graphic_pattern
-  | IPropPatternFun of (unit -> graphic_pattern)
+  | IPropGraphic of (unit-> graphic_generic_object)
+  | IPropPattern of (unit -> graphic_pattern)
   | IPropColor of color
   | IPropFont of font_object
+  | IPropBool of bool
   | IPropNil;;
 
 let iprop_align p=match p with
@@ -54,12 +55,16 @@ let iprop_margin p=match p with
   | IPropMargin x->x
   | _ -> raise Bad_iface_prop;;
 
+let iprop_graphic p=match p with
+  | IPropGraphic x->x()
+  | _ -> raise Bad_iface_prop;;
+
 let iprop_pattern p=match p with
-  | IPropPattern x->x
+  | IPropPattern x->x()
   | _ -> raise Bad_iface_prop;;
 
 let iprop_pattern_fun p=match p with
-  | IPropPatternFun x->x
+  | IPropPattern x->x
   | _ -> raise Bad_iface_prop;;
       
 let iprop_color p=match p with
@@ -68,6 +73,10 @@ let iprop_color p=match p with
 
 let iprop_font p=match p with
   | IPropFont x->x
+  | _ -> raise Bad_iface_prop;;
+
+let iprop_bool p=match p with
+  | IPropBool x->x
   | _ -> raise Bad_iface_prop;;
 
 class iface_properties=
@@ -125,14 +134,16 @@ object(self)
   method parse n=
     super#parse n;
     match n#get_tag with
+      | "prop_graphic" -> 
+	  let p=(new xml_string_parser "path") in 
+	    p#parse n;
+	    let p2=(new xml_size_parser) in 
+	      p2#parse n;
+	    value<-IPropGraphic (fun()->(new graphic_object p2#get_w p2#get_h p#get_val false false))
       | "prop_pattern" -> 
 	  let p=(new xml_string_parser "path") in 
 	    p#parse n;
-	    value<-IPropPattern (new graphic_pattern_file p#get_val)
-      | "prop_pattern_fun" -> 
-	  let p=(new xml_string_parser "path") in 
-	    p#parse n;
-	    value<-IPropPatternFun (fun()-> (new graphic_pattern_file p#get_val))
+	    value<-IPropPattern (fun()-> (new graphic_pattern_file p#get_val))
       | "prop_font" ->
 	  let p=(new xml_font_parser) in 
 	    p#parse n;
@@ -149,6 +160,15 @@ object(self)
 	  let p=(new xml_int_parser "size") in 
 	    p#parse n;
 	    value<-IPropPadding p#get_val
+
+      | "prop_bool" ->
+	  let p=(new xml_string_parser "is") in 
+	    p#parse n;
+	    value<-IPropBool (match p#get_val with
+				| "true" -> true
+				| "false" -> false
+				| _ -> false)
+
       | "prop_align" ->
 	  let p=(new xml_string_parser "align") in 
 	    p#parse n;

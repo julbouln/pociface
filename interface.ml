@@ -308,6 +308,7 @@ class interface_NEW=
 	p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser self#iface_get_object);
 	p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser self#iface_get_object);
 	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser self#iface_get_object);
+	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
 	p#parse iface_xml;
         p#init self#iface_add_object self#get_interp
 
@@ -317,6 +318,8 @@ class interface_NEW=
       interp#set_module_val "iface" "hide_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
       interp#set_module_val "iface" "object_get_text" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
       interp#set_global_val "exit" (OLuaVal.efunc (OLuaVal.int **->> OLuaVal.unit) exit);
+
+      interp#set_global_val "int_of_string" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.int) int_of_string);
       
     val mutable focus="none"
 
