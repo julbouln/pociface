@@ -39,30 +39,6 @@ object(self)
   method get_rval=rval
 end;;
 
-(** icon tool object *)
-class ['a] iface_tool_icon (r:'a) f w h iw ih=
-object(self)
-  inherit ['a] iface_tool r w h as super
-  val mutable ico=new iface_button_icon f w h iw ih
-
-  method show()=
-    super#show();
-    ico#show();
-
-  method hide()=
-    super#hide();
-    ico#hide();
-
-  method move x y=
-    super#move (x) (y);
-    ico#move (x) (y);
-
-  method put()=
-    super#put();
-    ico#put();
-end;;
-
-
 (** icon tool graphic *)
 class ['a] iface_tool_graphic (r:'a) gr=
 object(self)
@@ -111,6 +87,14 @@ object(self)
     lab#put();
 end;;
 
+
+(** icon tool object *)
+class ['a] iface_tool_icon (r:'a) f w h iw ih=
+object(self)
+  inherit ['a] iface_tool_graphic r (new graphic_real_resized_object (f^":icon") ((float_of_int w)/.(float_of_int iw)) ((float_of_int h)/.(float_of_int ih)) (tiles_load f iw ih).(0)) as super
+end;;
+
+
 (** icon tool icon with label *)
 class ['a] iface_tool_icon_with_label (r:'a) fnt label f w h iw ih=
 object(self)
@@ -118,7 +102,7 @@ object(self)
     val mutable lab=new iface_label_static fnt (0,0,0) label
 
   method private reset_size()=
-    rect#set_size (ico#get_rect#get_w+lab#get_rect#get_w) (ico#get_rect#get_h);
+    rect#set_size (graphic#get_rect#get_w+lab#get_rect#get_w) (graphic#get_rect#get_h);
 
   initializer
     self#reset_size();
@@ -133,7 +117,7 @@ object(self)
 
   method move x y=
     super#move (x) (y);
-    lab#move (x+ico#get_rect#get_w) (y);
+    lab#move (x+graphic#get_rect#get_w) (y);
 
   method put()=
     super#put();
@@ -215,8 +199,8 @@ let string_of_color c=
 (** iface tool color *)
 class iface_color_tool re (i:int) (c:color) w h=
 object
-  inherit [int] iface_tool_graphic_with_label 0
-    (new font_object "medias/Vera.ttf" 16) (string_of_color c) 
+  inherit [int] iface_tool_graphic 0
+(*    (new font_object "medias/Vera.ttf" 16) (string_of_color c)  *)
     (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c)
     ) as super
 end;;

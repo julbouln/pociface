@@ -42,21 +42,31 @@ open Iface_theme;;
 class xml_iface_object_parser=
 object (self)
   inherit xml_parser
+    
+(** canvas layer *)
   val mutable layer=0
+(** object type *)
   val mutable nm=""
   method get_type=nm
 
+(** object unique id *)
   val mutable id=""
+(** object x position *)
   val mutable x=0
+(** object y position *)
   val mutable y=0
+(** object width size *)
   val mutable w=0
+(** object height size *)
   val mutable h=0
+(** show this object? *)
   val mutable show=false
-
+(** lua code for this object *)
   val mutable lua=""
-
+(** object properties *)
   val mutable props=new iface_properties
 
+(** object related theme *)
   val mutable theme=new iface_theme (Hashtbl.create 2)
   method set_theme t=theme<-t
 
@@ -77,6 +87,7 @@ object (self)
 
       | _ -> ()
 
+(** object initial init *)
   method init_object o=
     o#set_layer layer;
     o#move x y;
@@ -200,7 +211,7 @@ object(self)
       (id,ofun)
 end;;
 
-(** iface text edit box parser *)
+(** iface text box parser *)
 class xml_iface_text_box_parser=
 object(self)
   inherit xml_iface_object_parser as super
@@ -396,7 +407,7 @@ object(self)
       (id,ofun)
 end;;
 
-(** iface menu parser *)
+
 type xml_iface_menu_t=
   | IMenu of (string * xml_iface_menu_t list)
   | IMenuEntry of string;;
@@ -452,7 +463,7 @@ let to_menu mt layer get_obj=
     let menu=xmlmenu_to_menu (IMenu mt) in
       menu;;
 
-(** iface graphic object parser *)
+(** iface menu parser *)
 class xml_iface_menu_parser get_obj=
 object(self)
   inherit xml_iface_object_parser as super
@@ -488,7 +499,7 @@ object(self)
 end;;
 
 
-(** iface graphic object parser *)
+(** iface menubar parser *)
 class xml_iface_menubar_parser get_obj=
 object(self)
   inherit xml_iface_object_parser as super
@@ -590,6 +601,7 @@ end;;
 
 exception Xml_iface_parser_not_found of string;;
 
+(** iface parser *)
 class xml_iface_parser=
 object(self)
   inherit xml_parser

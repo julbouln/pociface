@@ -165,8 +165,6 @@ class iface_graphic_colored_object file w h un uc=
   end;;
 
 
-
-
 (** patterned iface object*)
 class iface_pgraphic_object (graph:graphic_pattern)=
 object(self)

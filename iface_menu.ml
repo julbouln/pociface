@@ -45,14 +45,14 @@ type iface_menu_position=
 (** {2 Classes} *)
 
 (** generic menu object *)
-class iface_menu rid ptile (pos:iface_menu_position) (mt:iface_object*iface_menu_t list)=
+class iface_menu rid pattern (pos:iface_menu_position) (mt:iface_object*iface_menu_t list)=
 object(self)
   inherit iface_object 0 0 as super
 
   val mutable empty=false
 
   val mutable tobj=(fst mt)
-  val mutable fond=new iface_pgraphic_object (ptile())
+  val mutable fond=new iface_pgraphic_object (pattern())
   val mutable menu=new iface_container ([||])
 
   val mutable vrect=new rectangle 0 0 0 0
@@ -164,7 +164,7 @@ object(self)
 	List.iter ( fun v->
 		      (match v with
 			 | Menu (o,tl)->
-			     let sm=new iface_menu (rid^":"^string_of_int !i) ptile MenuRight (o,tl) in
+			     let sm=new iface_menu (rid^":"^string_of_int !i) pattern MenuRight (o,tl) in
 			       sm#set_embed true;
 			       DynArray.add a (sm:>iface_object);
 			 | MenuEntry o ->DynArray.add a o
@@ -247,11 +247,11 @@ object(self)
 end;;
 
 (** menubar object *)
-class iface_menubar rid ptile c=
+class iface_menubar rid pattern c=
 object(self)
   inherit iface_object 0 0 as super
 
-  val mutable fond=new iface_pgraphic_object (ptile())
+  val mutable fond=new iface_pgraphic_object (pattern())
 
   val mutable menus=new iface_container [||]
 
@@ -271,7 +271,7 @@ object(self)
 	List.iter ( fun v->
 		      (match v with
 			 | Menu (o,tl)->
-			     let me=new iface_menu (rid^":"^string_of_int !i) ptile MenuBottom (o,tl) in
+			     let me=new iface_menu (rid^":"^string_of_int !i) pattern MenuBottom (o,tl) in
 			       me#set_embed true;
 			       DynArray.add a (me:>iface_object);
 			 | MenuEntry o -> DynArray.add a o;
@@ -341,300 +341,4 @@ object(self)
 
 end;;
 
-
-
-(** {2 DEPRECATED : for BFR compatibility } *)
-
-(** select box widget (DEPRECATED) *)
-class iface_selectbox_OLD fnt e=
- object(self)
-  inherit iface_vcontainer 
-(Array.make (Array.length e) (new iface_label_static fnt (0,63,0) "none" )) as super
-   val mutable cur_g=new iface_label_dynamic fnt (0,255,0)
-   val mutable cur_entry=0  
-
-       
-   initializer
-     self#foreachi(let f i obj=content.(i)<-new iface_label_static fnt (0,63,0) (e.(i)) in f);      
-     self#set_entry 0;
-     self#reset_size();
-
-   method private set_entry i=
-      if i <> (-1) then (
-	cur_entry<-(i);
-	cur_g#set_data_text e.(i);
-	cur_g#move (content.(i)#get_rect#get_x) (content.(i)#get_rect#get_y)
-       );     
-
-
-   method on_click x y=
-     super#on_click x y;
-     let t=ref (-1) in
-     self#foreachi (
-     let f i obj=
-       if x > obj#get_rect#get_x 
-	   && x < (obj#get_rect#get_w + obj#get_rect#get_x) 
-	   && y > obj#get_rect#get_y 
-	   && y < (obj#get_rect#get_h + obj#get_rect#get_y) 
-       then
-	 t:=i
-     in f
-    );
-     self#set_entry !t
-
-  method on_release x y=()
-      
-   
-   method set_data d=self#set_entry d
-   method get_data=cur_entry
-
-   method get_rect=rect
-
-   method move x y=
-     super#move x y;
-     cur_g#move x y;
-  
-   method show()=
-     super#show();
-     cur_g#show()
-
-   method hide()=
-     super#hide();
-     cur_g#hide()
-
-   method put()=
-     let fg=tile_rect (rect#get_w+10) (rect#get_h+10) (255,255,255) and
-       bg=tile_box (rect#get_w+10) (rect#get_h+10) (0,0,0) in
-     tile_put bg (rect#get_x - 5) (rect#get_y - 5);
-     tile_put fg (rect#get_x - 5) (rect#get_y - 5);
-     tile_free bg;
-     tile_free fg;
-       
-     super#put();
-     cur_g#put()
-
-end;;
-
-
-(** select box widget *)
-class iface_selectbox fnt e=
- object(self)
-  inherit iface_vcontainer 
-(Array.make (Array.length e) (new iface_label_static fnt (0,63,0) "none" )) as super
-   val mutable cur_g=new iface_label_dynamic fnt (0,255,0)
-   val mutable cur_entry=0  
-   val mutable clicked=false
-   val mutable first_x=0
-   val mutable first_y=0
-   val mutable last=0
-   val mutable w=0
-   val mutable h=0
-       
-   initializer
-     self#foreachi(let f i obj=content.(i)<-new iface_label_static fnt (0,127,0) (e.(i)) in f);      
-     self#set_entry 0;
-     self#reset_size();
-     w<-rect#get_w;
-     h<-rect#get_h;
-     rect#set_size w content.(0)#get_rect#get_h
-
-   method private set_entry i=
-     if i <> (-1) then (
-
-       cur_g#set_data_text e.(i);
-
-(*       let t=ref (-1) in
-	 self#foreachi (
-	   let f j obj=
-	     if first_x = obj#get_rect#get_x &&
-	       first_y = obj#get_rect#get_y then
-	       t:=j
-	   in f
-	 );
-*)
-	
-	   content.(cur_entry)#move (content.(i)#get_rect#get_x) (content.(i)#get_rect#get_y);  
-       content.(i)#move (first_x) (first_y);
-       cur_entry<-(i);
-     );     
-
-
-   method on_click x y=
-     if clicked==false then (
-       clicked<-true;			       
-       rect#set_size w h
-     )
-     else (
-       super#on_click x y;
-       let t=ref (-1) in
-	 self#foreachi (
-	   let f i obj=
-	     if x > obj#get_rect#get_x 
-	       && x < (obj#get_rect#get_w + obj#get_rect#get_x) 
-	       && y > obj#get_rect#get_y 
-	       && y < (obj#get_rect#get_h + obj#get_rect#get_y) 
-	     then
-	       t:=i
-	   in f
-	 );
-	 self#set_entry !t;
-	 clicked<-false;	   	 
-	 rect#set_size w content.(cur_entry)#get_rect#get_h
-     );
-     
-   method on_release x y=()
-
-   
-   method set_data d=self#set_entry d
-   method get_data=cur_entry
-
-   method get_rect=rect
-
-   method move x y=
-     first_x<-x;
-     first_y<-y;
-     super#move x y;
-     cur_g#move x y;
-  
-   method show()=
-     super#show();
-     cur_g#show()
-
-   method hide()=
-     super#hide();
-     cur_g#hide()
-
-   method put()=
-     
-     if clicked==true then (
-     let bg=tile_box (w+10) h (55,55,55) in
-       tile_put bg (first_x-5) first_y;
-       tile_free bg;
-     let fg=tile_rect (w+10) h (127,127,127) in
-       tile_put fg (first_x-5) first_y;
-       tile_free fg;
-
-       super#put();
-     );
-     let bg=tile_box (w+10) content.(cur_entry)#get_rect#get_h (63,63,63) in
-       tile_put bg (first_x-5) first_y;
-       tile_free bg;
-     let fg=tile_rect (w+10) content.(cur_entry)#get_rect#get_h (127,127,127) in
-       tile_put fg (first_x-5) first_y;
-       tile_free fg;
-
-     cur_g#put()
-
-end;;
-
-
-(** select box widget *)
-class iface_menulist fnt ol=
- object(self)
-  inherit iface_vcontainer ol as super
-
-   val mutable clicked=false
-   val mutable first_x=0
-   val mutable first_y=0
-   val mutable last=0
-   val mutable w=0
-   val mutable h=0
-       
-   initializer
-     self#set_entry 0;
-     self#reset_size();
-     w<-rect#get_w;
-     h<-rect#get_h;
-     rect#set_size w content.(0)#get_rect#get_h
-
-   method private set_entry i=
-     if i <> (-1) then (
-
-(*       cur_g#set_data_text e.(i); *)
-
-(*       let t=ref (-1) in
-	 self#foreachi (
-	   let f j obj=
-	     if first_x = obj#get_rect#get_x &&
-	       first_y = obj#get_rect#get_y then
-	       t:=j
-	   in f
-	 );
-*)
-	
-(*	   content.(cur_entry)#move (content.(i)#get_rect#get_x) (content.(i)#get_rect#get_y);  
-       content.(i)#move (first_x) (first_y);
-       cur_entry<-(i);*)
-     );     
-
-
-   method on_click x y=
-     if clicked==false then (
-       clicked<-true;			       
-       rect#set_size w h
-     )
-     else (
-       super#on_click x y;
-       let t=ref (-1) in
-	 self#foreachi (
-	   let f i obj=
-	     if x > obj#get_rect#get_x 
-	       && x < (obj#get_rect#get_w + obj#get_rect#get_x) 
-	       && y > obj#get_rect#get_y 
-	       && y < (obj#get_rect#get_h + obj#get_rect#get_y) 
-	     then
-	       t:=i
-	   in f
-	 );
-	 self#set_entry !t;
-	 clicked<-false;	   	 
-	 rect#set_size w content.(0)#get_rect#get_h 
-     );
-     
-   method on_release x y=()
-
-   
-(*   method set_data d=self#set_entry d 
-   method get_data=cur_entry *)
-
-   method get_rect=rect
-
-   method move x y=
-     first_x<-x;
-     first_y<-y;
-     super#move x y;
-     
-   method show()=
-     super#show();
-   
-   method hide()=
-     super#hide();
-   
-   method put()=
-     
-     if clicked==true then (
-     let bg=tile_box (w+10) h (55,55,55) in
-       tile_put bg (first_x-5) first_y;
-       tile_free bg;
-     let fg=tile_rect (w+10) h (127,127,127) in
-       tile_put fg (first_x-5) first_y;
-       tile_free fg;
-
-       super#put();
-     );
-     let bg=tile_box (w+10) content.(0)#get_rect#get_h (63,63,63) in
-       tile_put bg (first_x-5) first_y;
-       tile_free bg;
-     let fg=tile_rect (w+10) content.(0)#get_rect#get_h (127,127,127) in
-       tile_put fg (first_x-5) first_y;
-       tile_free fg;
-
-
-end;;
-
-(* FIXME : rename * iface_selectbox2 to iface_selectbox *)
-class iface_selectbox2 fnt e=
-object
-  inherit iface_selectbox fnt e
-end;;
 
