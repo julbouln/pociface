@@ -29,12 +29,14 @@ open Event_manager;;
 
 open Otype;;
 open Olua;;
+open Oxml;;
 
 open Iface_object;;
 open Iface_container;;
 open Iface_text;;
 open Iface_button;;
-
+open Iface_theme;;
+open Iface_xml;;
 (** GUI objects class definitions *)
 
 
@@ -286,6 +288,25 @@ class interface_NEW=
     initializer 
       self#init_lua()
 
+    val mutable iface_parser=new xml_iface_parser 
+    method iface_add_xml_parser p f=iface_parser#parser_add p f
+
+    method init_from_xml f=
+      let iface_xml=new xml_node (Xml.parse_file f) in
+      let p=iface_parser in
+	p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
+	p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
+	p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
+	p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser);
+	p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser);
+	p#parser_add "iface_graphic_object" (fun()->new xml_iface_graphic_object_parser);
+	p#parser_add "iface_vcontainer" (fun()->new xml_iface_vcontainer_parser self#iface_get_object);
+	p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser self#iface_get_object);
+	p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser self#iface_get_object);
+	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser self#iface_get_object);
+	p#parse iface_xml;
+        p#init self#iface_add_object self#get_interp
+
     method init_lua()=
       interp#set_module_val "iface" "set_focus" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
       interp#set_module_val "iface" "show_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#show_object);
@@ -427,12 +448,14 @@ class interface_NEW=
 	let f i obj=
 	  if is_mo i=false  then 
             obj#on_mouseout x y in     
+
 	  self#foreach_object f;
 
     method mouseout x y=
 (*      let o=(self#iface_get_object_at_position x y) in *)
-      self#iface_foreach_object_at_position x y (
-	fun o->
+(*      self#iface_foreach_object_at_position x y ( *)
+      self#foreach_object (
+	fun k o->
 	  if o#is_showing==true then ( 
 	    o#on_mouseout x y;
 	  )
@@ -504,5 +527,82 @@ class interface_NEW=
 	    )
 	)
   end;;
+
+
+
+class xml_interface_parser=
+object(self)
+  inherit xml_parser
+
+  val mutable iface=new interface_NEW 
+  val mutable objs=DynArray.create()
+
+
+  val mutable obj_parsers=Hashtbl.create 2
+  method parser_add (n:string) (p:unit->xml_iface_object_parser)=Hashtbl.add obj_parsers n p
+  method parser_is n=Hashtbl.mem obj_parsers n
+  method parser_get n=
+    (try
+       Hashtbl.find obj_parsers n
+     with
+	 Not_found -> raise (Xml_iface_parser_not_found n))
+
+  val mutable theme=new iface_theme (Hashtbl.create 2)
+  method get_style s=theme#get_style s    
+  
+  method get_iface=iface
+
+  method parse_attr k v=
+    match k with
+      | "theme" -> theme<-iface_theme_from_xml v
+      | _ -> ()
+
+  method parse_child k v=
+    match k with
+      | "iface_object" -> let p=new xml_iface_object_parser in p#parse v;
+	  if self#parser_is p#get_type then
+	    let sp=(self#parser_get p#get_type)() in
+	      sp#set_theme theme;
+	      sp#parse v;
+	      DynArray.add objs sp#get_val
+      | _ ->()
+
+  method get_val=
+      DynArray.iter (fun ol->
+		       List.iter (
+			 fun (n,l,o)->
+			   print_string ("IFACE_XML: add object "^n);print_newline();
+			   iface#iface_add_object n (o());				 
+			   
+			   let l2=(n^"={};\n")^l in
+			     print_string l2;
+			     iface#get_interp#parse l2;()
+		       )ol;
+		       ) objs;
+    iface
+      
+end;;
+
+
+
+
+let iface_from_xml f=
+    let iface_xml=new xml_node (Xml.parse_file f) in
+    let p=new xml_interface_parser in
+      p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
+      p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
+      p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
+      p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser);
+      p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser);
+      p#parser_add "iface_graphic_object" (fun()->new xml_iface_graphic_object_parser);
+      p#parser_add "iface_vcontainer" (fun()->new xml_iface_vcontainer_parser p#get_iface#iface_get_object);
+      p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser p#get_iface#iface_get_object);
+      p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser p#get_iface#iface_get_object);
+      p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser p#get_iface#iface_get_object);
+      p#parse iface_xml;
+      
+      p#get_val;;
+
+
 
 

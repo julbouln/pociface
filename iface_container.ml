@@ -32,9 +32,34 @@ class iface_container c=
     val mutable valign=VAlignMiddle
     val mutable halign=HAlignLeft
 
+    val mutable vrect=new rectangle 0 0 0 0 
+    method get_vrect=vrect
+
+    method set_layer l=
+      layer<-l;
+      self#foreach
+	(
+	  fun o->
+	    o#set_layer (layer+1)
+	);
+
     initializer
       self#reset_size();
+      self#init_childs();
 
+    method private init_childs()=
+      self#foreachi
+	(
+	  fun i o->
+	    o#set_parent (Some (self:>iface_object))
+	)
+
+    method private init_layer l=
+      self#foreach
+	(
+	  fun o->
+	    o#set_layer (self#get_layer+l)
+	);
     method private foreach f=
       Array.iter f content;
       
@@ -64,11 +89,7 @@ class iface_container c=
       self#foreach (
 	fun obj->
 	  if obj#get_embed then (
-	    if x > obj#get_vrect#get_x 
-	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	      && y > obj#get_vrect#get_y 
-	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	    then (
+	    if obj#get_vrect#is_position x y then (
 	      
 	      obj#on_click x y;
 	    ) 
@@ -80,11 +101,7 @@ class iface_container c=
       self#foreach (
 	fun obj->
 	  if obj#get_embed then (
-	    if x > obj#get_vrect#get_x 
-	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	      && y > obj#get_vrect#get_y 
-	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	    then (
+	    if obj#get_vrect#is_position x y then (
 	      
 	      obj#on_release x y;
 	    ) 
@@ -96,12 +113,7 @@ class iface_container c=
       self#foreach (
 	fun obj->
 	  if obj#get_embed then (
-	    if x > obj#get_vrect#get_x 
-	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	      && y > obj#get_vrect#get_y 
-	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	    then (
-	      
+	    if obj#get_vrect#is_position x y then (	      
 	      obj#on_mouseover x y;
 	    ) else obj#on_mouseout x y;
 	  )
@@ -113,17 +125,12 @@ class iface_container c=
       self#foreach (
 	fun obj->
 	  if obj#get_embed then (
-	    if x > obj#get_vrect#get_x 
-	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	      && y > obj#get_vrect#get_y 
-	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	    then (
-	      
+(*	    if obj#get_vrect#is_position x y then ( *)
 	      obj#on_mouseout x y;
-	    ) 
+(*	    )  *)
 	  )
       );
-      super#on_mouseover x y;
+      super#on_mouseout x y;
 
 
     method pos_from_align (orect:rectangle)=
@@ -141,6 +148,10 @@ class iface_container c=
       )
 
 
+    method move x y=
+      super#move x y;
+      vrect#set_position x y;
+
   end;;
 
 
@@ -149,8 +160,6 @@ class iface_vcontainer c=
   object (self)
     inherit iface_container c as super
 
-    val mutable vrect=new rectangle 0 0 0 0 
-    method get_vrect=vrect
 
     method reset_size()=
       let w=ref 0 in
@@ -191,10 +200,6 @@ class iface_vcontainer c=
 class iface_hcontainer c=
   object (self)
     inherit iface_container c as super
-
-
-    val mutable vrect=new rectangle 0 0 0 0
-    method get_vrect=vrect
 
     method reset_size()=
       let w=ref 0 in

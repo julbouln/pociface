@@ -31,6 +31,10 @@ class iface_object w h=
 object(self)
   inherit canvas_object
 
+  val mutable parent=None
+  method set_parent (p:iface_object option)=parent<-p
+  method get_parent=parent
+
     val mutable embed=false
     method set_embed e=embed<-e
     method get_embed=embed

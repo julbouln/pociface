@@ -21,6 +21,7 @@ open Video;;
 
 open Oxml;;
 open Medias;;
+open Olua;;
 
 open Iface_object;;
 open Iface_text;;
@@ -29,7 +30,6 @@ open Iface_container;;
 open Iface_menu;;
 
 open Iface_theme;;
-open Interface;;
 
 
 (** generic iface object parser *)
@@ -232,7 +232,6 @@ object(self)
 		    (
 			fun n->
 			  let co=(get_obj n) in
-			    co#set_layer (layer+1);
 			  DynArray.add a co
 		    ) container;
 		  DynArray.to_array a
@@ -266,7 +265,6 @@ object(self)
 		    (
 			fun n->
 			  let co=(get_obj n) in
-			    co#set_layer (layer+1);
 			  DynArray.add a co
 		    ) container;
 		  DynArray.to_array a
@@ -309,7 +307,6 @@ object
 
 end;;
 
-
 let to_menu mt layer get_obj=
     let rec xmlmenu_to_menu men=
       match men with
@@ -317,7 +314,6 @@ let to_menu mt layer get_obj=
 	    print_string ("parse MENU "^n);print_newline();
 	    
 	    let co=(get_obj n) in
-	      co#set_layer (layer+1);
 	      Menu (co,
 		    let a=DynArray.create() in
 		      List.iter (
@@ -330,7 +326,6 @@ let to_menu mt layer get_obj=
 	    print_string ("parse MENUENTRY "^n);print_newline();
 	    MenuEntry (
 	      let co=(get_obj n) in
-		co#set_layer (layer+1);
 		co
 	    )
     in
@@ -343,6 +338,7 @@ object(self)
   inherit xml_iface_object_parser as super
 
   val mutable menu_t=("none",[])
+
 
   method parse_child k v=
     super#parse_child k v;
@@ -365,6 +361,7 @@ class xml_iface_menu_t_list_parser=
 object(self)
   inherit [string * xml_iface_menu_t list,xml_iface_menu_t_parser] xml_list_parser "menu" (fun()->new xml_iface_menu_t_parser) 
 end;;
+
 
 (** iface graphic object parser *)
 class xml_iface_menubar_parser get_obj=
@@ -399,15 +396,13 @@ object(self)
       [(id,lua,ofun)]
 end;;
 
-
 exception Xml_iface_parser_not_found of string;;
 
-class xml_interface_parser=
+class xml_iface_parser=
 object(self)
   inherit xml_parser
 
   val mutable objs=DynArray.create()
-
 
   val mutable obj_parsers=Hashtbl.create 2
   method parser_add (n:string) (p:unit->xml_iface_object_parser)=Hashtbl.add obj_parsers n p
@@ -421,9 +416,6 @@ object(self)
   val mutable theme=new iface_theme (Hashtbl.create 2)
   method get_style s=theme#get_style s    
   
-  val mutable iface=new interface_NEW
-  method get_iface=iface
-
   method parse_attr k v=
     match k with
       | "theme" -> theme<-iface_theme_from_xml v
@@ -439,42 +431,20 @@ object(self)
 	      DynArray.add objs sp#get_val
       | _ ->()
 
-  method get_val=
+  method init (add_obj:string->iface_object->unit) (get_interp:lua_interp)=
       DynArray.iter (fun ol->
 		       List.iter (
 			 fun (n,l,o)->
 			   print_string ("IFACE_XML: add object "^n);print_newline();
-			   iface#iface_add_object n (o());				 
+			   add_obj n (o());				 
 			   
 			   let l2=(n^"={};\n")^l in
 			     print_string l2;
-			     iface#get_interp#parse l2;()
+			     get_interp#parse l2;()
 		       )ol;
 		       ) objs;
-		       iface
       
 end;;
-
-let iface_from_xml f=
-    let iface_xml=new xml_node (Xml.parse_file f) in
-    let p=new xml_interface_parser in
-      p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
-      p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
-      p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
-      p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser);
-      p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser);
-      p#parser_add "iface_graphic_object" (fun()->new xml_iface_graphic_object_parser);
-      p#parser_add "iface_vcontainer" (fun()->new xml_iface_vcontainer_parser p#get_iface#iface_get_object);
-      p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser p#get_iface#iface_get_object);
-      p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser p#get_iface#iface_get_object);
-      p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser p#get_iface#iface_get_object);
-      p#parse iface_xml;
-      
-      p#get_val;;
-
-
-
-
 
 
 
@@ -564,7 +534,6 @@ object(self)
 		    (
 			fun n->
 			  let co=(get_obj n) in
-			    co#set_layer (layer+1);
 			  DynArray.add a co
 		    ) container;
 		  DynArray.to_array a
