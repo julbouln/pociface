@@ -378,8 +378,8 @@ object(self)
     iface#init_from_xml file
 
   method on_loop()=
-    iface#update();
     super#on_loop();
+    iface#update();
 
   method ev_parser e=
     (match e with
