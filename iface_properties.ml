@@ -1,8 +1,8 @@
+open Value_xml;;
+
 open Core_font;;
 open Core_medias;;
 open Core_graphic;;
-
-open Oxml;;
 
 
 (** Interface properties *)

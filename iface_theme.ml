@@ -1,11 +1,11 @@
+open Value_xml;;
+
 open Core_medias;;
 open Core_graphic;;
 open Core_font;;
 open Core_drawing;;
 
 open Binding;;
-
-open Oxml;;
 
 open Iface_object;;
 open Iface_properties;;

@@ -16,13 +16,12 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
+open Value_xml;;
+open Value_val;;
+open Value_lua;;
 
 open Core_main;;
 open Core_medias;;
-
-open Oxml;;
-open Oval;;
-open Olua;;
 
 open Iface_properties;;
 open Iface_object;;

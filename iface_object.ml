@@ -17,14 +17,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
+open Value_common;;
+open Value_lua;;
 
 open Core_rect;;
 open Core_medias;;
 open Core_graphic;;
 open Core_event;;
 
-open Ocommon;;
-open Olua;;
 
 (** Interface generic objects *)
 

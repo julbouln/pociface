@@ -20,7 +20,7 @@
 
 open Str;;
 
-open Oval;;
+open Value_val;;
 
 open Core_rect;;
 open Core_video;;

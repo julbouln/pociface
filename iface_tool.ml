@@ -17,6 +17,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
+open Value_lua;;
+open Value_val;;
+
 
 open Core_drawing;;
 open Core_medias;;
@@ -24,8 +27,6 @@ open Core_graphic;;
 
 open Binding;;
 
-open Olua;;
-open Oval;;
 
 open Iface_object;;
 open Iface_text;;
