@@ -4,9 +4,11 @@
 - valign and halign in button
 - add auto focus
 - fix layer issue
-- move iface_properties to oval API ?
+- move iface_properties to pocvalue API ?
 - use graphic_object xml capacity for graphic and pattern properties
 - add tab/enter on text edit (add form object?)
+- dynamic container
+- add click & release button for mouse event
 
 * new objects
 - add a window manager

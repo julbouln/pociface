@@ -123,7 +123,7 @@ object(self)
 
   method parse n=
     super#parse n;
-    match n#get_tag with
+    match n#tag with
       | "prop_graphic" -> 
 	  let p=(new xml_string_parser "path") in 
 	    p#parse n;

@@ -82,7 +82,7 @@ object (self)
       | "layer" -> let p=(new xml_int_parser "pos" ) in p#parse v;layer<-p#get_val;
       | "size" -> let p=(new xml_size_parser ) in p#parse v;w<-p#get_w;h<-p#get_h;
       | "position" -> let p=(new xml_point_parser ) in p#parse v;x<-p#get_x;y<-p#get_y;
-      | "script" -> lua<-v#get_pcdata;
+      | "script" -> lua<-v#pcdata;
       | "show" -> show<-true
 
       | _ -> ()
@@ -664,13 +664,14 @@ object(self)
       | _ ->()
 
   method init (add_obj:string->iface_object->unit)=
+    
     DynArray.iter (
       fun (n,o)->
 (*	print_string ("IFACE_XML: add object "^n);print_newline(); *)
 	let no=o() in	  	  
 	  no#lua_init();
 	  add_obj n (no);
-    ) objs;
+    ) (DynArray.of_list (List.rev (DynArray.to_list objs)));
       
 end;;
 

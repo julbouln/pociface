@@ -99,7 +99,8 @@ class interface=
     method iface_add_xml_parser p f=iface_parser#parser_add p f
 
     method init_from_xml f=
-      let iface_xml=new xml_node (Xml.parse_file f) in
+(*      let iface_xml=new xml_node (Xml.parse_file f) in *)
+      let iface_xml=xml_node_from_file f in
       let p=iface_parser in
 	p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
 	p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
