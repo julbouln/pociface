@@ -50,6 +50,8 @@ object (self)
 
   val mutable lua=""
 
+  val mutable props=new iface_properties
+
   val mutable theme=new iface_theme (Hashtbl.create 2)
   method set_theme t=theme<-t
 
@@ -61,6 +63,7 @@ object (self)
    
   method parse_child k v=
     match k with
+      | "properties" -> let p=(new xml_iface_props_parser) in p#parse v;props<-p#get_val
       | "layer" -> let p=(new xml_int_parser "pos" ) in p#parse v;layer<-p#get_val;
       | "size" -> let p=(new xml_size_parser ) in p#parse v;w<-p#get_w;h<-p#get_h;
       | "position" -> let p=(new xml_point_parser ) in p#parse v;x<-p#get_x;y<-p#get_y;
@@ -75,7 +78,7 @@ object (self)
     if show then
       o#show();
     o#move (video#f_size_w x) (video#f_size_h y);
-    o#set_lua lua;    
+    o#set_lua lua;
     
   method get_val=
     let ofun()=
@@ -83,9 +86,12 @@ object (self)
 	self#init_object o;
 	o	  
     in      
-  [(id,lua,ofun)]
+      (id,ofun)
 
 end;;
+
+
+
 
 (** iface button parser *)
 class xml_iface_button_parser=
@@ -95,12 +101,17 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=new iface_pbutton id st#get_pattern_normal st#get_pattern_clicked in
+	props#merge st;
+	let o=
+	  new iface_pbutton id 
+	    (iprop_pattern (props#get_prop "pattern_normal")) 
+	    (iprop_pattern (props#get_prop "pattern_clicked")) 
+	in
 	super#init_object o;
 	o
     in
 
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface button with label parser *)
@@ -119,11 +130,18 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=new iface_pbutton_with_label id st#get_pattern_normal st#get_pattern_clicked st#get_fnt st#get_foreground_color txt in
+	props#merge st;
+      let o=
+	new iface_pbutton_with_label id 
+	    (iprop_pattern (props#get_prop "pattern_normal")) 
+	    (iprop_pattern (props#get_prop "pattern_clicked")) 
+	    (iprop_font (props#get_prop "font")) 
+	    (iprop_color (props#get_prop "foreground_color")) 
+	  txt in
 	super#init_object o;
 	o
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface label parser *)
@@ -132,32 +150,27 @@ object(self)
   inherit xml_iface_object_parser as super
  
   val mutable txt=""
-  val mutable col=None
-  val mutable fnt=None
 
   method parse_child k v=
     super#parse_child k v;
     match k with
       | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
-      | "color" -> let p=(new xml_color_parser ) in p#parse v;col<-(Some p#get_val)
-      | "font" -> let p=(new xml_font_parser ) in p#parse v;fnt<-(Some p#get_val)
       | _ -> ()    
 
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
+	props#merge st;
       let o=
 	new iface_label_static 
-	  (match fnt with
-	     | Some f->f
-	     | None ->st#get_fnt)
-	  (match col with 
-	     | Some c->c
-	     | None -> st#get_foreground_color) txt in
-	super#init_object o;
+	  (iprop_font (props#get_prop "font")) 
+	  (iprop_color (props#get_prop "foreground_color")) 
+	  txt
+      in
+	  super#init_object o;
 	o
-    in
-      [(id,lua,ofun)]
+      in
+	(id,ofun)
 end;;
 
 
@@ -169,11 +182,17 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=	new iface_text_edit id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) in
+	props#merge st;
+      let o=	
+	new iface_text_edit id 
+	    (iprop_pattern (props#get_prop "pattern")) 
+	    (iprop_font (props#get_prop "font")) 
+	    (iprop_color (props#get_prop "foreground_color")) 
+	  (video#f_size_w w) in
 	super#init_object o;
 	o
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface text edit box parser *)
@@ -193,11 +212,17 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=	new iface_text_box id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) l in
+	props#merge st;
+      let o=
+	new iface_text_box id 
+	  (iprop_pattern (props#get_prop "pattern")) 
+	  (iprop_font (props#get_prop "font")) 
+	  (iprop_color (props#get_prop "foreground_color")) 
+	  (video#f_size_w w) l in
 	super#init_object o;
 	o
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 
@@ -218,11 +243,17 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=	new iface_text_edit_box id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) l in
+	props#merge st;
+      let o=	
+	new iface_text_edit_box id 
+	  (iprop_pattern (props#get_prop "pattern")) 
+	  (iprop_font (props#get_prop "font")) 
+	  (iprop_color (props#get_prop "foreground_color")) 
+	  (video#f_size_w w) l in
 	super#init_object o;
 	o
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface password edit parser *)
@@ -233,11 +264,17 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=	new iface_password_edit id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) in
+	props#merge st;
+      let o=
+	new iface_password_edit id 
+	  (iprop_pattern (props#get_prop "pattern")) 
+	  (iprop_font (props#get_prop "font")) 
+	  (iprop_color (props#get_prop "foreground_color")) 
+	  (video#f_size_w w) in
 	super#init_object o;
 	o
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface graphic object parser *)
@@ -259,7 +296,7 @@ object(self)
 	super#init_object o;
 	o
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface vcontainer parser *)
@@ -269,32 +306,16 @@ object(self)
 
   val mutable container=Array.create 1 "none"
 
-  val mutable valign=VAlignMiddle
-  val mutable halign=HAlignMiddle
-
   method parse_child k v=
     super#parse_child k v;
     match k with
-      | "valign" -> let p=(new xml_string_parser "align") in p#parse v;
-	  (match p#get_val with
-	     | "top" -> valign<-VAlignTop
-	     | "middle" -> valign<-VAlignMiddle
-	     | "bottom" -> valign<-VAlignBottom
-	     | _ -> ()
-	  );	     
-
-      | "halign" -> let p=(new xml_string_parser "align") in p#parse v;
-	  (match p#get_val with
-	     | "left" -> halign<-HAlignLeft
-	     | "middle" -> halign<-HAlignMiddle
-	     | "right" -> halign<-HAlignRight
-	     | _ -> ()
-	  );	     
       | "container" -> let p=(new xml_stringlist_parser "iface_object" (fun()->new xml_string_parser "id")) in p#parse v;container<-p#get_array
       | _ -> ()    
  
   method get_val=
     let ofun()=
+      let st=theme#get_style nm in
+	props#merge st;
       let o=new iface_vcontainer 
 	      (
 		let a=DynArray.create() in
@@ -307,12 +328,12 @@ object(self)
 		  DynArray.to_array a
 		      
 	      ) in
-	o#set_valign valign;
-	o#set_halign halign;
+	  o#set_valign (iprop_align (props#get_prop "valign"));
+	  o#set_halign (iprop_align (props#get_prop "halign"));
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface hcontainer parser *)
@@ -322,32 +343,16 @@ object(self)
 
   val mutable container=Array.create 1 "none"
 
-  val mutable valign=VAlignMiddle
-  val mutable halign=HAlignMiddle
-
   method parse_child k v=
     super#parse_child k v;
     match k with
-      | "valign" -> let p=(new xml_string_parser "align") in p#parse v;
-	  (match p#get_val with
-	     | "top" -> valign<-VAlignTop
-	     | "middle" -> valign<-VAlignMiddle
-	     | "bottom" -> valign<-VAlignBottom
-	     | _ -> ()
-	  );	     
-
-      | "halign" -> let p=(new xml_string_parser "align") in p#parse v;
-	  (match p#get_val with
-	     | "left" -> halign<-HAlignLeft
-	     | "middle" -> halign<-HAlignMiddle
-	     | "right" -> halign<-HAlignRight
-	     | _ -> ()
-	  );	     
       | "container" -> let p=(new xml_stringlist_parser "iface_object" (fun()->new xml_string_parser "id")) in p#parse v;container<-p#get_array
       | _ -> ()    
  
   method get_val=
     let ofun()=
+      let st=theme#get_style nm in
+	props#merge st;
       let o=new iface_hcontainer 
 	      (
 		let a=DynArray.create() in
@@ -360,12 +365,12 @@ object(self)
 		  DynArray.to_array a
 		      
 	      ) in
-	o#set_valign valign;
-	o#set_halign halign;
+	  o#set_valign (iprop_align (props#get_prop "valign"));
+	  o#set_halign (iprop_align (props#get_prop "halign"));
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 (** iface menu parser *)
@@ -441,11 +446,16 @@ object(self)
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
-      let o=new iface_menu id st#get_pattern_normal_f MenuRight (match to_menu menu_t layer get_obj with Menu m->m) in
+	props#merge st;
+      let o=
+	new iface_menu id 
+	  (iprop_pattern_fun (props#get_prop "pattern")) 
+	  MenuRight 
+	  (match to_menu menu_t layer get_obj with Menu m->m) in
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 
@@ -472,7 +482,9 @@ object(self)
     let ofun()=
 
       let st=theme#get_style nm in
-      let o=new iface_menubar id st#get_pattern_normal_f 
+	props#merge st;
+      let o=new iface_menubar id 
+	(iprop_pattern_fun (props#get_prop "pattern")) 
 	(
 	  let a=DynArray.create() in
 	  Array.iter (
@@ -485,7 +497,7 @@ object(self)
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
-      [(id,lua,ofun)]
+      (id,ofun)
 end;;
 
 exception Xml_iface_parser_not_found of string;;
@@ -524,194 +536,12 @@ object(self)
       | _ ->()
 
   method init (add_obj:string->iface_object->unit) (get_interp:lua_interp)=
-      DynArray.iter (fun ol->
-		       List.iter (
-			 fun (n,l,o)->
-			   print_string ("IFACE_XML: add object "^n);print_newline();
-			   let no=o() in
-			   
-
-			     add_obj n (no);				 
-			     no#lua_register get_interp;
-(*			   
-			   let l2=(n^"={};\n")^l in
-			     print_string l2;
-			     get_interp#parse l2;()
-*)
-
-		       )ol;
-		       ) objs;
+    DynArray.iter (
+      fun (n,o)->
+	print_string ("IFACE_XML: add object "^n);print_newline();
+	let no=o() in	  	  
+	  add_obj n (no);				 
+	  no#lua_register get_interp;
+    ) objs;
       
 end;;
-
-
-
-
-
-
-
-(* DEPRECATED *)
-(*
-class iface_object_parser theme get_obj=
-object(self)
-  inherit xml_parser
-  val mutable layer=0
-  val mutable nm=""
-  val mutable id=""
-  val mutable file=""
-  val mutable w=0
-  val mutable h=0
-
-  val mutable iw=0
-  val mutable ih=0
-
-  val mutable x=0
-  val mutable y=0
-
-  val mutable r=0
-  val mutable g=0
-  val mutable b=0
-
-  val mutable fnt=new font_object "none" 0
-  val mutable txt=""
-  val mutable show=false
-
-  val mutable lua=""
-  method tag=""
-
-  val mutable container=Array.create 1 "none"
-  val mutable menu=IMenuEntry "none"
-
-  method parse_attr k v=
-    match k with
-      | "type" ->nm<-v
-      | "id" ->id<-v
-      | _ -> ()
-   
-  method parse_child k v=
-    match k with
-      | "layer" -> let p=(new xml_int_parser "pos" ) in p#parse v;layer<-p#get_val;
-      | "file" -> let p=(new xml_string_parser "path") in p#parse v;file<-p#get_val    
-      | "size" -> let p=(new xml_size_parser ) in p#parse v;w<-p#get_w;h<-p#get_h;
-      | "isize" -> let p=(new xml_size_parser ) in p#parse v;iw<-p#get_w;ih<-p#get_h;
-      | "position" -> let p=(new xml_point_parser ) in p#parse v;x<-p#get_x;y<-p#get_y;
-      | "color" -> let p=(new xml_color_parser ) in p#parse v;r<-p#get_r;g<-p#get_g;b<-p#get_b;
-      | "font" -> let p=(new xml_font_parser ) in p#parse v;fnt<-p#get_val
-      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
-      | "container" -> let p=(new xml_stringlist_parser "iface_object" (fun()->new xml_string_parser "id")) in p#parse v;container<-p#get_array
-      | "lua" -> lua<-v#get_pcdata;
-      | "script" -> lua<-v#get_pcdata;
-      | "show" -> show<-true
-
-      | _ -> ()
-
-  method get_val=
-    let ofun()=
-      let o=(
-	match nm with
-	  | "iface_text_edit" -> 
-	      let st=theme#get_style nm in
-		new iface_text_edit id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w)
-	  | "iface_password_edit" -> 
-	      let st=theme#get_style nm in
-		new iface_password_edit id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w)
-	  | "iface_button" -> 
-	      let st=theme#get_style nm in
-		new iface_rbutton id st#get_pattern_normal st#get_pattern_clicked
-	  | "iface_button_with_label" -> 
-	      let st=theme#get_style nm in
-		new iface_rbutton_with_label id st#get_pattern_normal st#get_pattern_clicked st#get_fnt st#get_foreground_color txt 
-	  | "iface_label" -> 
-	      let st=theme#get_style nm in
-		new iface_label_static st#get_fnt st#get_foreground_color txt
-		  
-	  | "iface_vcontainer" -> new iface_vcontainer 
-	      (
-		let a=DynArray.create() in
-		  Array.iter
-		    (
-			fun n->
-			  let co=(get_obj n) in
-			  DynArray.add a co
-		    ) container;
-		  DynArray.to_array a
-		      
-	      )
-		
-	  | "iface_button_icon" -> new iface_button_icon file (video#f_size_w w) (video#f_size_h h) iw ih
-	  | "iface_label_static" -> new iface_label_static fnt (r,g,b) txt
-	  | "iface_label_dynamic" -> new iface_label_dynamic fnt (r,g,b)
-	  | "iface_graphic_object" -> new iface_graphic_file_object file (video#f_size_w w) (video#f_size_h h)
-	      (*      | "iface_container_object" -> new iface_container (self#oarr_to_arr oarr)*)
-	  | _ -> new iface_object (video#f_size_w w) (video#f_size_h h)
-      ) in
-	o#set_layer layer;
-	o#move x y;
-	if show then
-	  o#show();
-	o#move (video#f_size_w x) (video#f_size_h y);
-	(o:>iface_object)
-	  
-    in
-      
-      [|(id,lua,ofun)|]
-
-end;;
-
-
-class iface_objects_parser name=
-object(self)
-
-  inherit [((string * string * (unit->iface_object)) array),iface_object_parser] xml_list_parser name (fun()->new iface_object_parser (new iface_theme (Hashtbl.create 2)) (fun s->new iface_object 0 0) ) as super
-
-
-  val mutable theme=new iface_theme (Hashtbl.create 2)
-  method get_style s=theme#get_style s    
-  
-  val mutable bg="none"
-
-  val mutable w=0
-  val mutable h=0
-
-  val mutable iface=new interface_NEW
-
-
-  method init()=
-    super#set_parser_func (fun()->new iface_object_parser theme iface#iface_get_object)
-
-  initializer
-    self#init()
-
-  method parse_attr k v=
-    match k with
-      | "background" ->bg<-v
-      | "theme" -> theme<-iface_theme_from_xml v
-      | "w" ->w<-(int_of_string v)
-      | "h" ->h<-(int_of_string v)
-      | _ -> ()
-
-  method get_val=
-
-    let l=self#get_list in
-      List.iter (fun ol->
-		   Array.iter (fun (n,l,o)->
-				 print_string ("IFACE_XML: add object "^n);print_newline();
-				 iface#iface_add_object n (o());				 
-				 
-				 let l2=(n^"={};\n")^l in
-				   print_string l2;
-				   iface#get_interp#parse l2;()
-			      ) ol
-		) l;
-      iface
-      
-end;;
-*)
-(*
-let iface_from_xml f=
-    let iface_xml=new xml_node (Xml.parse_file f) in
-    let p=new iface_objects_parser "iface_object" in
-      p#parse iface_xml;
-      
-      p#get_val;;
-*)

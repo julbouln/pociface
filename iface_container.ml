@@ -29,8 +29,8 @@ class iface_container c=
     inherit iface_object 0 0 as super
     val mutable content=c
 
-    val mutable valign=VAlignMiddle
-    val mutable halign=HAlignMiddle
+    val mutable valign=IAlignMiddle
+    val mutable halign=IAlignMiddle
 
     method set_valign v=valign<-v
     method set_halign h=halign<-h
@@ -140,14 +140,16 @@ class iface_container c=
       let (mw,mh)=self#max_size() in
       (
 	(match halign with
-	   | HAlignLeft -> 0
-	   | HAlignRight -> mw - orect#get_w
-	   | HAlignMiddle -> mw/2 - orect#get_w/2
+	   | IAlignLeft -> 0
+	   | IAlignRight -> mw - orect#get_w
+	   | IAlignMiddle -> mw/2 - orect#get_w/2
+	   | _ -> 0
 	),
 	(match valign with
-	   | VAlignTop -> 0
-	   | VAlignBottom -> mh - orect#get_h
-	   | VAlignMiddle -> mh/2 - orect#get_h/2
+	   | IAlignTop -> 0
+	   | IAlignBottom -> mh - orect#get_h
+	   | IAlignMiddle -> mh/2 - orect#get_h/2
+	   | _ -> 0
 	)
       )
 

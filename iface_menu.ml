@@ -469,7 +469,7 @@ object(self)
 
 	DynArray.to_array a    
     );
-    menu#set_halign HAlignLeft;
+    menu#set_halign IAlignLeft;
     self#init_size();
 
 
@@ -572,7 +572,7 @@ object(self)
 		  ) c;
 	DynArray.to_array a        
     );
-    menus#set_halign HAlignLeft;
+    menus#set_halign IAlignLeft;
     self#init_size();
 
 
@@ -686,7 +686,7 @@ object(self)
   initializer 
     selected#move (-32) (-32);
     self#reset_size();
-
+    self#set_halign IAlignLeft;
 
   method move x y=
     vrect#set_position x y;
