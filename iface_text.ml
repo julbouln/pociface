@@ -43,7 +43,7 @@ class iface_label_static fnt_t color txt=
   object
     inherit iface_graphic_object  
     (
-      new graphic_object_text fnt_t txt color
+      new graphic_object_text fnt_t [txt] color
 (*      new graphic_real_object 
 
        ("label/static/"^txt^":"^(string_of_int fnt#get_size)^":"
@@ -159,8 +159,8 @@ class graphic_text nid fnt_t (col:color)=
 object(self)
   inherit graphic_cached_object nid
 (*  val mutable graphic=new graphic_cached_object nid *)
-  val mutable graphic=new graphic_object_text fnt_t ("empty") col;
-  val mutable fnt=(font_vault#get_cache (get_font_id fnt_t)).(0)
+  val mutable graphic=new graphic_object_text fnt_t (["text:empty"]) col;
+  val mutable fnt=(font_vault#get_cache_simple (get_font_id fnt_t))
  
   val mutable color=col
   method get_color=color
@@ -267,11 +267,20 @@ object(self)
 
   method set_text t=
 
-    text<-[""];
-    text<-self#cut_string2 t;
+    if t="" then (
+      text<-[""];
+      graphic<-new graphic_cached_object "text:empty";
+    )
+    else (
+      text<-self#cut_string2 t;
+      graphic<-new graphic_object_text fnt_t (self#get_text) self#get_color;
+    );
 
-    graphic<-
-      new graphic_object_text fnt_t (List.nth self#get_text 0) self#get_color;
+    print_string "taille: ";
+    print_int (List.length (self#get_text));
+    print_newline();
+    
+
 (*      new graphic_dyn_object (id^"/text") (List.length self#get_text)
       (function k-> (
 	 fnt#create_text (List.nth self#get_text k) self#get_color
@@ -293,7 +302,7 @@ object(self)
       graphic#move (rect#get_x) (rect#get_y+(i*fnt#get_height));
       graphic#set_cur_drawing i;
       graphic#put();	
-
+      
     done;
 
 end;;
@@ -305,7 +314,7 @@ object(self)
 
     val mutable bg=new iface_pgraphic_object bpgraph
     val mutable text=new graphic_text (rid^"/text_box") fnt_t color
-    val mutable fnt=(font_vault#get_cache (get_font_id fnt_t)).(0)
+    val mutable fnt=(font_vault#get_cache_simple (get_font_id fnt_t))
 
     initializer
       text#set_lines il;
@@ -346,7 +355,9 @@ object(self)
     method set_data_text t=
       super#set_data_text (t); 
       text#set_text (data_text);
-
+(*      if t<>"" then (
+      )
+*)
     method put()=
       if showing==true then (	  
 	let (brw,brh)=bg#border_size in
@@ -386,9 +397,9 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
     method get_data_text=te#get_text;
 
     method set_data_text t=
-      if t="" then
-	te#set_text ""; 
       super#set_data_text (t);       
+      if t="" then
+	te#set_text t;
 
     method on_keypress (k,utfk)=
       te#parse k utfk;
