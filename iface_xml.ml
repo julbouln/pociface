@@ -79,7 +79,7 @@ object (self)
     o#move x y;
     if show then
       o#show();
-    o#move (video#f_size_w x) (video#f_size_h y);
+    o#move (video#f_size_w x) (video#f_size_h y);    
     o#set_lua lua;
     
   method get_val=
@@ -333,6 +333,7 @@ object(self)
 	  o#set_valign (iprop_align (props#get_prop "valign"));
 	  o#set_halign (iprop_align (props#get_prop "halign"));
 	  o#set_fixed_size (iprop_bool (props#get_prop "fixed_size"));
+	  o#set_symmetric_size (iprop_bool (props#get_prop "symmetric_size"));
 (*
 	  if (iprop_bool (props#get_prop "fixed_size")) then (
 	    print_string "fixed_size!";print_newline()
@@ -340,7 +341,8 @@ object(self)
 	    print_string "non fixed_size!";print_newline()
 	  );	    
 *)
-	  o#reset_size();
+	  o#resize w h;
+
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
@@ -379,6 +381,7 @@ object(self)
 	  o#set_valign (iprop_align (props#get_prop "valign"));
 	  o#set_halign (iprop_align (props#get_prop "halign"));
 	  o#set_fixed_size (iprop_bool (props#get_prop "fixed_size"));
+	  o#set_symmetric_size (iprop_bool (props#get_prop "symmetric_size"));
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in

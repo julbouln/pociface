@@ -55,13 +55,15 @@ let get_default_style n=
 	   [
 	     ("valign",IPropAlign IAlignMiddle);
 	     ("halign",IPropAlign IAlignMiddle);
-	     ("fixed_size",IPropBool true) 
+	     ("fixed_size",IPropBool false);
+	     ("symmetric_size",IPropBool false) 
 	   ]
        | "iface_vcontainer" ->props#from_list
 	   [
 	     ("valign",IPropAlign IAlignMiddle);
 	     ("halign",IPropAlign IAlignMiddle);
-	     ("fixed_size",IPropBool true) 
+	     ("fixed_size",IPropBool false); 
+	     ("symmetric_size",IPropBool false) 
 	   ]
      
        | "iface_menu" ->props#from_list

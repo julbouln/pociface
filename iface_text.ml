@@ -381,6 +381,12 @@ object(self)
 	bg#resize (bw+(brw*2)) (il*fnt#get_height+(brh*2));
 	rect#set_size bg#get_rect#get_w bg#get_rect#get_h;
 
+    method resize w h=
+      let (brw,brh)=bg#border_size in
+	rect#set_size w h;
+	text#set_max_size (w);
+	bg#resize (w) (h);
+	text#set_lines (h/fnt#get_height);
 
     method move x y=
       super#move (x) (y);

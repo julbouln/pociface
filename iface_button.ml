@@ -185,7 +185,7 @@ object
     else
       ngr#put()
 
-  method private resize nw nh=
+  method resize nw nh=
     ngr#resize nw nh;
     cgr#resize nw nh;
     rect#set_size ngr#get_rect#get_w ngr#get_rect#get_h;    

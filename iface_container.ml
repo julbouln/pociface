@@ -32,12 +32,17 @@ class iface_container c=
 
     val mutable valign=IAlignMiddle
     val mutable halign=IAlignMiddle
-    val mutable fixed_size=true
+    val mutable fixed_size=false
+    val mutable symmetric_size=false
 
     method set_valign v=valign<-v
     method set_halign h=halign<-h
+
     method set_fixed_size i=
       fixed_size<-i
+
+    method set_symmetric_size i=
+      symmetric_size<-i
 
     val mutable vrect=new rectangle 0 0 0 0 
     method get_vrect=vrect
@@ -53,6 +58,8 @@ class iface_container c=
     initializer
       self#reset_size();
       self#init_childs();
+
+
 
     method private init_childs()=
       self#foreachi
@@ -139,14 +146,6 @@ class iface_container c=
       );
       super#on_mouseout x y;
 
-
-    method size_from_fixed (orect:rectangle)=
-      let (mw,mh)=self#max_size() in
-	(if fixed_size then 
-	   (mw,mh) 
-	 else 
-	   (orect#get_w,orect#get_h));
-
     method pos_from_align (orect:rectangle)=
       let (mw,mh)=self#max_size() in
 	  (
@@ -205,13 +204,31 @@ class iface_vcontainer c=
     inherit iface_container c as super
 
 
+    method resize (w:int) (h:int)=
+
+      if fixed_size || w=0 || h=0 then
+	self#reset_size()
+      else 
+	(
+	  super#resize w h;
+	  let ih=h/(Array.length c) in
+	    
+	    self#foreachi
+	      (
+		fun i o->
+		  let oh=o#get_rect#get_h and
+		      ow=o#get_rect#get_w in
+		    o#resize (if symmetric_size then w else ow) (if symmetric_size then ih else (h/rect#get_h * oh))
+	      )
+	)
+
     method reset_size()=
       let w=ref 0 in
       let h=ref 0 in
       let (mw,mh)=self#max_size() in	
       self#foreach (
       let f obj=
-	h:=!h+(if fixed_size then mh else obj#get_rect#get_h);
+	h:=!h+(if symmetric_size then mh else obj#get_rect#get_h);
 	if obj#get_rect#get_w> !w then
 	  w:=obj#get_rect#get_w
       in f
@@ -223,7 +240,7 @@ class iface_vcontainer c=
       let (vmw,vmh)=self#vmax_size() in	
       self#foreach (
       let f obj=
-	vh:=!vh+(if fixed_size then vmh else obj#get_vrect#get_h);
+	vh:=!vh+(if symmetric_size then vmh else obj#get_vrect#get_h);
 	if obj#get_vrect#get_w> !vw then
 	  vw:=obj#get_vrect#get_w
       in f
@@ -238,8 +255,11 @@ class iface_vcontainer c=
       self#foreachi (
 	fun i obj->	  
 	  let (ax,ay)=self#pos_from_align obj#get_rect in
-	  obj#move (x+ax) (y+( (if fixed_size then (mh*i)+ay else !h)));
-	  h:= !h+obj#get_rect#get_h;
+(*	    print_string ("obj move:"^obj#get_id);print_int obj#get_rect#get_x;print_newline(); *)
+	  obj#move 
+	    (x+ax) 
+	    (y+( (if symmetric_size then (mh*i)+ay else !h)));
+	    h:= !h+obj#get_rect#get_h;
       )
 
 
@@ -257,7 +277,7 @@ class iface_hcontainer c=
       let (mw,mh)=self#max_size() in	
       self#foreach (
       let f obj=
-	w:=!w+(if fixed_size then mw else obj#get_rect#get_w);
+	w:=!w+(if symmetric_size then mw else obj#get_rect#get_w);
 	if obj#get_rect#get_h> !h then
 	  h:=obj#get_rect#get_h
       in f
@@ -270,7 +290,7 @@ class iface_hcontainer c=
       let (vmw,vmh)=self#vmax_size() in	
       self#foreach (
       let f obj=
-	vw:=!vw+(if fixed_size then vmw else obj#get_vrect#get_w);
+	vw:=!vw+(if symmetric_size then vmw else obj#get_vrect#get_w);
 	if obj#get_vrect#get_h> !vh then
 	  vh:=obj#get_vrect#get_h
       in f

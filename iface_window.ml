@@ -49,6 +49,10 @@ object(self)
     layer<-l;
     content#set_layer (layer+1);
 
+(*
+  method resize w h=
+*)  
+
   method private init_size()=    
     (* title part *)
     let (tbw,tbh)=tigr#border_size in

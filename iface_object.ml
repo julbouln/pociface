@@ -89,6 +89,7 @@ object(self)
     method hide()=showing<-false
       
     method move x y=rect#set_position x y
+    method resize w h=rect#set_size w h
 
     method get_rect=rect
     method get_vrect=self#get_rect
