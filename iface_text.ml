@@ -20,6 +20,8 @@
 open Drawing;;
 open Str;;
 
+open Oval;;
+
 open Generic;;
 open Rect;;
 open Video;;
@@ -205,16 +207,16 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
   object (self)
     inherit iface_text_box rid bptile fnt_t color bw il as super
     val mutable te=new text_edit
-    val mutable cursor=new graphic_cached_object "cursor"
+    val mutable cursor=new graphic_object "cursor"
 
     initializer
       cursor<-new graphic_from_drawing "cursor" (
 	fun()->
 	  let dr=drawing_vault#new_drawing() in
-	    dr#exec_op_create "rect" 
+	    dr#exec_op_create_from_list "rect" 
 	      [
-		DrawValSize(1,(fnt#get_height));
-		DrawValColor color
+		`Size(1,(fnt#get_height));
+		`Color color
 	    ];
 	    [|dr|]
       )   

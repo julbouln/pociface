@@ -22,6 +22,7 @@ open Drawing;;
 open Medias;;
 open Olua;;
 open Binding;;
+open Oval;;
 
 open Iface_object;;
 open Iface_text;;
@@ -96,7 +97,7 @@ object(self)
 (*(new graphic_real_resized_object (f^":icon") ((float_of_int w)/.(float_of_int iw)) ((float_of_int h)/.(float_of_int ih)) 
 (tiles_load f iw ih).(0)) 
 *)
-(new graphic_object_resized_from_file f 0 w h iw ih)
+(new graphic_resized_from_file f 0 w h iw ih)
 as super
 end;;
 
@@ -138,10 +139,10 @@ object(self)
     new graphic_from_drawing "selected" (
       fun()->
 	let dr=drawing_vault#new_drawing() in
-	  dr#exec_op_create "rect" 
+	  dr#exec_op_create_from_list "rect" 
 	    [
-	      DrawValSize(32,32);
-	      DrawValColor(255,0,0)
+	      `Size(32,32);
+	      `Color(255,0,0)
 	    ];
 	[|dr|]
     )

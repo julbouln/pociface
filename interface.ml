@@ -19,6 +19,8 @@
 
 open Str;;
 
+
+open Oval;;
 open Generic;;
 open Rect;;
 open Video;;
@@ -48,42 +50,42 @@ exception Iface_object_not_found of string;;
 class interface=
   object (self)
     inherit [iface_object] generic_object_handler
-    val mutable canvas=new canvas_NEW
+    val mutable canvas=new canvas
 
     val mutable interp=new lua_interp
     method get_interp=interp
 
     method init_default_pattern()=
-      drawing_vault#add_drawing_fun "default_pattern_fun"
+      drawing_vault#add_drawing_fun_from_list "default_pattern_fun"
 	(
 	  fun vl->
-	    let col=get_draw_op_color vl 0 in
+	    let col=color_of_val (List.nth vl 0) in
 	      [|default_pattern col|]
 	);
   
-      drawing_vault#add_drawing_fun "default_pattern_clicked_fun"
+      drawing_vault#add_drawing_fun_from_list "default_pattern_clicked_fun"
 	(
 	  fun vl->
-	    let col=get_draw_op_color vl 0 in
+	    let col=color_of_val (List.nth vl 0) in
 	      [|default_pattern_clicked col|]
 	);
     
       drawing_vault#add_cache_from_drawing_fun "default_pattern:simple"
 	[
-	  DrawValString "default_pattern_fun"; 
-	  DrawValColor(172,172,172)
+	  `String "default_pattern_fun"; 
+	  `Color(172,172,172)
 	];
       
       drawing_vault#add_cache_from_drawing_fun "default_pattern_clicked:simple"
 	[
-	  DrawValString "default_pattern_clicked_fun"; 
-	  DrawValColor(128,128,128)
+	  `String "default_pattern_clicked_fun"; 
+	  `Color(128,128,128)
 	];
       
       drawing_vault#add_cache_from_drawing_fun "default_pattern_text:simple"
 	[
-	  DrawValString "default_pattern_fun";
-	  DrawValColor(200,200,200)
+	  `String "default_pattern_fun";
+	  `Color(200,200,200)
 	];
     
 

@@ -37,46 +37,46 @@ let default_pattern bgcol=
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
       dcol=(r-16,g-16,b-16) in
-    dr#exec_op_write "line" [
-	DrawValPosition (0,0);
-	DrawValPosition (23,0);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (0,0);
+	`Position (23,0);
+	`Color lcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (1,1);
-	DrawValPosition (22,1);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (1,1);
+	`Position (22,1);
+	`Color lcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (0,0);
-	DrawValPosition (0,23);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (0,0);
+	`Position (0,23);
+	`Color lcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (1,1);
-	DrawValPosition (1,22);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (1,1);
+	`Position (1,22);
+	`Color lcol;
       ];
 
-    dr#exec_op_write "line" [
-	DrawValPosition (23,0);
-	DrawValPosition (23,23);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (23,0);
+	`Position (23,23);
+	`Color dcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (22,1);
-	DrawValPosition (22,22);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (22,1);
+	`Position (22,22);
+	`Color dcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (0,23);
-	DrawValPosition (23,23);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (0,23);
+	`Position (23,23);
+	`Color dcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (1,22);
-	DrawValPosition (22,22);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (1,22);
+	`Position (22,22);
+	`Color dcol;
       ];
     dr;;
 (*  let bg=(tile_box 24 24 bgcol) in
@@ -101,46 +101,46 @@ let default_pattern_clicked bgcol=
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
       dcol=(r-16,g-16,b-16) in
-    dr#exec_op_write "line" [
-	DrawValPosition (0,0);
-	DrawValPosition (23,0);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (0,0);
+	`Position (23,0);
+	`Color dcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (1,1);
-	DrawValPosition (22,1);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (1,1);
+	`Position (22,1);
+	`Color dcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (0,0);
-	DrawValPosition (0,23);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (0,0);
+	`Position (0,23);
+	`Color dcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (1,1);
-	DrawValPosition (1,22);
-	DrawValColor dcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (1,1);
+	`Position (1,22);
+	`Color dcol;
       ];
 
-    dr#exec_op_write "line" [
-	DrawValPosition (23,0);
-	DrawValPosition (23,23);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (23,0);
+	`Position (23,23);
+	`Color lcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (22,1);
-	DrawValPosition (22,22);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (22,1);
+	`Position (22,22);
+	`Color lcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (0,23);
-	DrawValPosition (23,23);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (0,23);
+	`Position (23,23);
+	`Color lcol;
       ];
-    dr#exec_op_write "line" [
-	DrawValPosition (1,22);
-	DrawValPosition (22,22);
-	DrawValColor lcol;
+    dr#exec_op_write_from_list "line" [
+	`Position (1,22);
+	`Position (22,22);
+	`Color lcol;
       ];
     dr;;
 (*
@@ -171,10 +171,10 @@ let default_graph w h color=
   new graphic_from_drawing "default_rect" (
     fun()->
       let dr=drawing_vault#new_drawing() in
-	dr#exec_op_create "rect" 
+	dr#exec_op_create_from_list "rect" 
 	  [
-	    DrawValSize(w,h);
-		DrawValColor color
+	    `Size(w,h);
+	    `Color color
 	  ];
 	[|dr|]
   )   

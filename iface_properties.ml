@@ -27,14 +27,16 @@ type iface_align=
 
 (** Property type *)
 type iface_prop=
+  | IPropBool of bool
+  | IPropColor of color
+
   | IPropAlign of iface_align
   | IPropPadding of int
   | IPropMargin of int
-  | IPropGraphic of (unit-> graphic_cached_object)
+  | IPropGraphic of (unit-> graphic_object)
   | IPropPattern of (unit -> graphic_pattern)
-  | IPropColor of color
   | IPropFont of (font_t)
-  | IPropBool of bool
+
   | IPropNil;;
 
 (** {2 Type convertion functions} *)
@@ -126,7 +128,7 @@ object(self)
 	    p#parse n;
 	    let p2=(new xml_size_parser) in 
 	      p2#parse n;
-	    value<-IPropGraphic (fun()->(new graphic_object_from_file p#get_val p2#get_w p2#get_h))
+	    value<-IPropGraphic (fun()->(new graphic_from_file p#get_val p2#get_w p2#get_h))
       | "prop_pattern" -> 
 	  let p=(new xml_string_parser "path") in 
 	    p#parse n;
