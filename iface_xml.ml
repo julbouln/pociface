@@ -674,8 +674,9 @@ object(self)
       fun (n,o)->
 (*	print_string ("IFACE_XML: add object "^n);print_newline(); *)
 	let no=o() in	  	  
-	  no#lua_init();
 	  add_obj n (no);
+	  ignore(no#lua_init());
+
     ) (DynArray.of_list (List.rev (DynArray.to_list objs)));
       
 end;;
