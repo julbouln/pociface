@@ -54,6 +54,8 @@ class interface=
     inherit [iface_object] generic_object_handler
 
     inherit lua_object as lo
+    method get_id="interface"
+
     val mutable canvas=new canvas
 
     method init_default_pattern()=
