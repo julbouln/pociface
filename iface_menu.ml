@@ -289,7 +289,8 @@ object(self)
     let (brw,brh)=fond#border_size in
     fond#resize (menus#get_rect#get_w+(brw*2)) (menus#get_rect#get_h+(brh*2));
 
-    rect#set_size menus#get_rect#get_w menus#get_rect#get_h;
+    rect#set_size fond#get_rect#get_w fond#get_rect#get_h; 
+(*    rect#set_size menus#get_rect#get_w menus#get_rect#get_h; *)
     vrect#set_size menus#get_vrect#get_w menus#get_vrect#get_h;
 
 
