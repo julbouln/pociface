@@ -54,28 +54,37 @@ class interface=
     method get_interp=interp
 
     method init_default_pattern()=
-    drawing_vault#add_drawing_fun "default_pattern_fun"
-      (
-	fun vl->
-	  let col=get_draw_op_color vl 0 in
-	    [|default_pattern col|]
-      );
+      drawing_vault#add_drawing_fun "default_pattern_fun"
+	(
+	  fun vl->
+	    let col=get_draw_op_color vl 0 in
+	      [|default_pattern col|]
+	);
   
-    drawing_vault#add_drawing_fun "default_pattern_clicked_fun"
-      (
-	fun vl->
-	  let col=get_draw_op_color vl 0 in
-	    [|default_pattern_clicked col|]
-      );
+      drawing_vault#add_drawing_fun "default_pattern_clicked_fun"
+	(
+	  fun vl->
+	    let col=get_draw_op_color vl 0 in
+	      [|default_pattern_clicked col|]
+	);
     
-    drawing_vault#add_cache_from_drawing_fun "default_pattern:simple"
-      "default_pattern_fun" [DrawValColor(172,172,172)];
-    
-    drawing_vault#add_cache_from_drawing_fun "default_pattern_clicked:simple"
-      "default_pattern_clicked_fun" [DrawValColor(128,128,128)];
-    
-    drawing_vault#add_cache_from_drawing_fun "default_pattern_text:simple"
-      "default_pattern_fun" [DrawValColor(200,200,200)];
+      drawing_vault#add_cache_from_drawing_fun "default_pattern:simple"
+	[
+	  DrawValString "default_pattern_fun"; 
+	  DrawValColor(172,172,172)
+	];
+      
+      drawing_vault#add_cache_from_drawing_fun "default_pattern_clicked:simple"
+	[
+	  DrawValString "default_pattern_clicked_fun"; 
+	  DrawValColor(128,128,128)
+	];
+      
+      drawing_vault#add_cache_from_drawing_fun "default_pattern_text:simple"
+	[
+	  DrawValString "default_pattern_fun";
+	  DrawValColor(200,200,200)
+	];
     
 
 
@@ -114,20 +123,10 @@ class interface=
       interp#set_module_val "iface" "object_get_text" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
       interp#set_global_val "exit" (OLuaVal.efunc (OLuaVal.int **->> OLuaVal.unit) exit);
 
-      interp#set_global_val "test_table" (OLuaVal.table.OLuaVal.embed self#lua_test_table);
-
       interp#set_global_val "int_of_string" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.int) int_of_string);
       
     val mutable focus="none"
 
-    method private test s=
-      print_string s;print_newline();
-
-    method private lua_test_table=
-      let h=Luahash.create (fun a b->a=b) 2 in
-	Luahash.replace h ~key:(OLuaVal.String "test") ~data:(OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#test);
-	h
-	  
 
 (** general iface functions *)
 

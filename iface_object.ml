@@ -37,98 +37,107 @@ object(self)
   method set_parent (p:iface_object option)=parent<-p
   method get_parent=parent
 
-    val mutable embed=false
-    method set_embed e=embed<-e
-    method get_embed=embed
+  val mutable embed=false
+  method set_embed e=embed<-e
+  method get_embed=embed
+    
+  val mutable data=0
+  val mutable data1=0
+  val mutable data_text=""
+  val mutable showing=false
+    
+  val mutable click=(function()->())
+  val mutable release=(function()->())
+  val mutable mouseover=(function()->())
+  val mutable mouseout=(function()->())
+    
+  val mutable focused=false
+    
+  method set_focused f=focused<-f
+    
+    
+  method on_keypress (e:(key_type*key_type))=()
+  method on_keyrelease (e:(key_type*key_type))=()
+    
+  method on_click (x : int) (y : int)=click()
+  method on_release (x : int) (y : int)=release()
+  method on_mouseover (x : int) (y : int)=mouseover()
+  method on_mouseout (x : int) (y : int)=mouseout()
+    
 
-    val mutable data=0
-    val mutable data1=0
-    val mutable data_text=""
-    val mutable showing=false
-
-    val mutable click=(function()->())
-    val mutable release=(function()->())
-    val mutable mouseover=(function()->())
-    val mutable mouseout=(function()->())
-
-    val mutable focused=false
-
-    method set_focused f=focused<-f
-
-
-    method on_keypress (e:(key_type*key_type))=()
-    method on_keyrelease (e:(key_type*key_type))=()
-	
-    method on_click (x : int) (y : int)=click()
-    method on_release (x : int) (y : int)=release()
-    method on_mouseover (x : int) (y : int)=mouseover()
-    method on_mouseout (x : int) (y : int)=mouseout()
-
-
-    method append_click c=
-      let oclick=click in
-      let nclick()=oclick();c() in
-	click<- nclick;
-
-    method prepend_click (c:unit->unit)=
-      let oclick=click in
-      let nclick()=c();oclick() in
-	click<- nclick;
-
-    method set_click c=click<-c
-    method set_release r=release<-r
-
-    method get_click=click
-    method get_release=release
-
-    method set_mouseover c=mouseover<-c
-    method set_mouseout c=mouseout<-c
+  method append_click c=
+    let oclick=click in
+    let nclick()=oclick();c() in
+      click<- nclick;
       
-    method is_showing=showing
-    method show()=showing<-true
-    method hide()=showing<-false
+  method prepend_click (c:unit->unit)=
+    let oclick=click in
+    let nclick()=c();oclick() in
+      click<- nclick;
       
-    method move x y=rect#set_position x y
-    method resize w h=rect#set_size w h
+  method set_click c=click<-c
+  method set_release r=release<-r
+    
+  method get_click=click
+  method get_release=release
+    
+  method set_mouseover c=mouseover<-c
+  method set_mouseout c=mouseout<-c
+    
+  method is_showing=showing
+  method show()=showing<-true
+  method hide()=showing<-false
+    
+  method move x y=rect#set_position x y
+  method resize w h=rect#set_size w h
+    
+  method get_rect=rect
+  method get_vrect=self#get_rect
+    
+  method put()=()
+    
+  method set_data d=data<-d
+  method get_data=data
+  method set_data1 d=data1<-d
+  method get_data1=data1
+  method set_data_text d=data_text<-d
+  method get_data_text=data_text
 
-    method get_rect=rect
-    method get_vrect=self#get_rect
+  (* lua NEW *)
+  val mutable lobj=new lua_obj
 
-    method put()=()
+  method lua_table()=
+    lobj#set_val "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+    lobj#set_val "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+    lobj#set_val "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
+    lobj#set_val "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
+    lobj#set_val "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
+    lobj#set_val "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
+    lobj#set_val "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
+    
+    
 
-    method set_data d=data<-d
-    method get_data=data
-    method set_data1 d=data1<-d
-    method get_data1=data1
-    method set_data_text d=data_text<-d
-    method get_data_text=data_text
-
-(* lua *)
-    val mutable lua=""
-    method set_lua l=lua<-l
-    method get_lua=lua
-
-    method lua_register (interp:lua_interp)=
-      let lcode=(id^"={};\n") in
-	interp#parse lcode;();
-
-	interp#set_module_val id "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-	interp#set_module_val id "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-
-(*
-	interp#set_module_val id "get_w" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_w));
-	interp#set_module_val id "get_h" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_h));
-	interp#set_module_val id "get_x" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_x));	
-	interp#set_module_val id "get_y" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_y));
-*)
-	interp#set_module_val id "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
-	interp#set_module_val id "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
-	interp#set_module_val id "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
-
-	interp#set_module_val id "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
-	interp#set_module_val id "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
-
-	interp#parse lua;();
+     
+  (* lua *)
+  val mutable lua=""
+  method set_lua l=lua<-l
+  method get_lua=lua
+    
+  method lua_register (interp:lua_interp)=
+    let lcode=(id^"={};\n") in
+      interp#parse lcode;();
+      
+      interp#set_module_val id "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+      interp#set_module_val id "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+      
+      interp#set_module_val id "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
+      interp#set_module_val id "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
+      interp#set_module_val id "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
+      
+      interp#set_module_val id "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
+      interp#set_module_val id "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
+      
+      interp#parse lua;();
 	  
 end;;
 
