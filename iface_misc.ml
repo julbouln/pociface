@@ -29,6 +29,7 @@ open Iface_object;;
 open Iface_text;;
 open Iface_button;;
 
+(** Interface misc objects *)
 
 (** volume control widget *)
 class iface_volume s e w h=
@@ -65,9 +66,7 @@ class iface_volume s e w h=
   end;;
 
 
-(* will be in Poccore.Interface *)
-
-
+(** dialog object *)
 class iface_dialog w h bg fnt text (bl:(string*iface_object) list)  (el:(string*iface_object*iface_object) list)=
 object(self)
   inherit iface_graphic_file_object bg w h as super

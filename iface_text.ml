@@ -28,54 +28,17 @@ open Event_manager;;
 
 open Iface_object;;
 
+
+(** Interface text objects *)
+
 let string_eol=
   (String.make 1 '\n')
 
 let text_split s=
   split_delim (regexp "[\n\t]+") s;;
 
-(** text widget *)
-class iface_text fnt color txt_s=
-  object
-    inherit iface_graphic_object (
-      let txt=text_split txt_s in
-      let cs=match color with 
-      |(x,y,z)->(string_of_int x)^(string_of_int y)^(string_of_int z) in
 
-      new graphic_dyn_object ("text:"^(List.nth txt 0)^cs) (List.length txt)
-	(function k-> (
-	  fnt#create_text (List.nth txt k) color
-	 ))	 
-     ) 0 0 as super
-	
-    val txt=text_split txt_s
-
-    initializer
-      let cw=ref 0 and
-	  ch=ref 0 in
-      for i=0 to (List.length txt)-1 do
-	let pos=fnt#sizeof_text (List.nth txt i) in
-	if !cw<(fst pos) then
-	  cw:=(fst pos);
-	ch:=!ch + (snd pos);
-      done;
-      graphic#get_rect#set_size (!cw) (!ch);
-
-    method put()=
-      if showing==true then (
-	for i=0 to (List.length txt)-1 do
-	  let ty=(graphic#get_rect#get_y) in
-	  graphic#set_cur_tile i;
-	  graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
-	  graphic#put();	
-	  graphic#move (graphic#get_rect#get_x) (ty);
-	done;
-       )
-  end;;
-
-
-
-(** label_static widget *)
+(** label_static object *)
 class iface_label_static fnt color txt=
   object
     inherit iface_graphic_object  
@@ -96,8 +59,7 @@ class iface_label_static fnt color txt=
 
   end;;
 
-
-(** label_dynamic widget *)
+(** label_dynamic object *)
 class iface_label_dynamic fnt color=
   object (self)
     inherit iface_object 0 0 as super
@@ -112,39 +74,7 @@ class iface_label_dynamic fnt color=
   end;;
 
 
-(* text entry *)
-(*
-class iface_text_entry fnt color=
-  object (self)
-    inherit iface_object 0 0 as super
-    val mutable data_text=""
-    val mutable last_key=""
-val mutable clicked=false
-
-    method put()=
-      let c=(!cur_key) in
-	(
-	  match c with
-	    | "none"->();
-	    | "return"->();
-	    | "backspace"->if last_key<>c && (String.length data_text)>0 then data_text<-(String.sub data_text 0 (String.length data_text-1));
-	    | "space"->();
-	    | _ ->if last_key<>c then data_text<-data_text^(c);
-	);
-	last_key<-c;
-      if showing==true then (
-	if data_text<>"" then (
-	let tmp=fnt#create_text data_text color in 
-          rect#set_size (tile_get_w tmp) (tile_get_h tmp);
-	  tile_put tmp (rect#get_x) (rect#get_y);
-	  tile_free tmp      
-	)
-      )
-  end;;
-*)
-
-
-(* outf8 *)
+(** utf8 *)
 class utf8=
 object(self)
   val mutable str=""
@@ -161,7 +91,7 @@ object(self)
 
 end;;
 
-
+(** text edit (no graphic) *)
 class text_edit=
 object(self)
   val mutable text=""
@@ -221,9 +151,9 @@ end;;
 
 
 
-exception Text_error of string;;
 
-(* FIXME : rename to graphic_text *)
+(* FIXME : go in poccore *)
+(** graphic text object *)
 class graphic_text nid fnt (col:color)=
 object(self)
   inherit graphic_generic_object nid
@@ -325,11 +255,9 @@ object(self)
 	let l=if md>=max_size then max_size else md in
 	let cs=UTF8.nth s (i*max_size) and
 	    ce=UTF8.nth s ((i*max_size) + l) in
-	  try 
 	    let ns=String.sub s cs (ce-cs) in
 	      if String.length ns>0 then
 		DynArray.add a ns
-	  with Invalid_argument x -> (raise (Text_error "cut_string"));
       done;
       DynArray.to_list a
 	
@@ -366,6 +294,7 @@ object(self)
 
 end;;
 
+(** text box *)
 class iface_text_box rid bpgraph fnt color bw il=
 object(self)
     inherit iface_object bw (fnt#get_height) as super
@@ -427,7 +356,7 @@ object(self)
 
 end;;
 
-(** text edit widget multiline *)
+(** text edit box *)
 class iface_text_edit_box rid bptile fnt color bw il=
   object (self)
     inherit iface_text_box rid bptile fnt color bw il as super
@@ -494,13 +423,13 @@ class iface_text_edit_box rid bptile fnt color bw il=
 
   end;;
 
-(** text edit widget 1 line *)
+(** text edit object 1 line *)
 class iface_text_edit rid bptile fnt color bw=
 object
   inherit iface_text_edit_box rid bptile fnt color bw 1 as super
 end
 
-(** password edit widget *)
+(** password edit object *)
 class iface_password_edit rid bptile fnt color bw=
   object (self)
     inherit iface_text_edit rid bptile fnt color bw as super
@@ -515,3 +444,48 @@ class iface_password_edit rid bptile fnt color bw=
 
 
   end;;
+
+
+(** {2 DEPRECATED : for BFR compatibility } *)
+
+(** text object *)
+class iface_text fnt color txt_s=
+  object
+    inherit iface_graphic_object (
+      let txt=text_split txt_s in
+      let cs=match color with 
+      |(x,y,z)->(string_of_int x)^(string_of_int y)^(string_of_int z) in
+
+      new graphic_dyn_object ("text:"^(List.nth txt 0)^cs) (List.length txt)
+	(function k-> (
+	  fnt#create_text (List.nth txt k) color
+	 ))	 
+     ) 0 0 as super
+	
+    val txt=text_split txt_s
+
+    initializer
+      let cw=ref 0 and
+	  ch=ref 0 in
+      for i=0 to (List.length txt)-1 do
+	let pos=fnt#sizeof_text (List.nth txt i) in
+	if !cw<(fst pos) then
+	  cw:=(fst pos);
+	ch:=!ch + (snd pos);
+      done;
+      graphic#get_rect#set_size (!cw) (!ch);
+
+    method put()=
+      if showing==true then (
+	for i=0 to (List.length txt)-1 do
+	  let ty=(graphic#get_rect#get_y) in
+	  graphic#set_cur_tile i;
+	  graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
+	  graphic#put();	
+	  graphic#move (graphic#get_rect#get_x) (ty);
+	done;
+       )
+  end;;
+
+
+

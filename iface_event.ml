@@ -23,7 +23,7 @@ open Event_manager;;
 open Medias;;
 open Interface;;
 
-(** GUI event parser *)
+(** Interface event parser *)
 
 let ev_iface_parser a iface curs=
   (match a.etype with

@@ -36,6 +36,7 @@ open Iface_window;;
 
 open Iface_theme;;
 
+(** Interface xml parsers *)
 
 (** generic iface object parser *)
 class xml_iface_object_parser=

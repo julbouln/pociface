@@ -28,7 +28,9 @@ open Event_manager;;
 
 open Olua;;
 
-(** parent widget *)
+(** Interface generic objects *)
+
+(** parent object *)
 class iface_object w h=
 object(self)
   inherit canvas_object
@@ -132,7 +134,7 @@ object(self)
 	  
 end;;
 
-(** graphic object widget *)
+(** graphic object *)
 class iface_graphic_object gr w h=
   object (self)
     inherit iface_object (gr#get_rect#get_w) (gr#get_rect#get_h) as super
@@ -148,14 +150,14 @@ class iface_graphic_object gr w h=
 
 
 
-(** graphic object from file widget *)
+(** graphic object from file *)
 class iface_graphic_file_object file w h=
   object (self)
     inherit iface_graphic_object (new graphic_scr_resized_object w h file false false) w h as super
 
   end;;
 
-(** graphic object from file widget with var color *)
+(** graphic object from file with var color *)
 class iface_graphic_colored_object file w h un uc=
   object (self)
     inherit iface_graphic_object (new graphic_object_colored w h file false false un uc) w h as super
@@ -191,23 +193,3 @@ object(self)
 end;; 
 
 
-(** graphic object widget *)
-class iface_graphic_object_NEW gr=
-  object (self)
-    inherit iface_object (gr#get_rect#get_w) (gr#get_rect#get_h) as super
-    val mutable graphic=gr
-
-    method move x y=
-      super#move x y;
-      graphic#move x y
-
-    method put()=
-      if showing==true then
-	graphic#put()
-  end;;
-
-
-class iface_icon icon w h=
-  object
-    inherit iface_graphic_file_object icon w h as super
-  end;;

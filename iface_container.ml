@@ -23,13 +23,13 @@ open Iface_object;;
 
 open Iface_properties;;
 
-(** container widget *)
+(** Interface containers *)
+
+(** container object *)
 class iface_container c=
   object (self)
     inherit iface_object 0 0 as super
     val mutable content=c
-
-(** properties *)
 
     val mutable valign=IAlignMiddle
     val mutable halign=IAlignMiddle
@@ -44,7 +44,6 @@ class iface_container c=
 
     method set_symmetric_size i=
       symmetric_size<-i
-
 
 
     val mutable vrect=new rectangle 0 0 0 0 
@@ -174,8 +173,6 @@ class iface_container c=
       super#move x y;
       vrect#set_position x y;
 
-(** private *)
-
     method private max_size()=
       let w=ref 0 in
       let h=ref 0 in
@@ -204,7 +201,7 @@ class iface_container c=
   end;;
 
 
-(** vertical container widget *)
+(** vertical container *)
 class iface_vcontainer c=
   object (self)
     inherit iface_container c as super
@@ -283,8 +280,7 @@ class iface_vcontainer c=
 
   end;;
 
- (** horizontal container widget *)
-
+(** horizontal container *)
 class iface_hcontainer c=
   object (self)
     inherit iface_container c as super

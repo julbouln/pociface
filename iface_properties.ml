@@ -3,26 +3,18 @@ open Medias;;
 open Oxml;;
 
 
-(* DEPRECATED *)
-
-type iface_object_valign=
-  | VAlignTop
-  | VAlignBottom
-  | VAlignMiddle
-;;
-type iface_object_halign=
-  | HAlignLeft
-  | HAlignRight
-  | HAlignMiddle
-;;
+(** Interface properties *)
+(** Properties are used in all interface object to configure them *)
 
 
-
-(* NEW *)
+(** {2 Exceptions} *)
 
 exception Bad_iface_prop;;
 exception Iface_prop_not_found of string;;
 
+(** {2 Types} *)
+
+(** Alignement type *)
 type iface_align=
   | IAlignTop
   | IAlignBottom
@@ -32,6 +24,7 @@ type iface_align=
   | IAlignNil
 ;;
 
+(** Property type *)
 type iface_prop=
   | IPropAlign of iface_align
   | IPropPadding of int
@@ -42,6 +35,8 @@ type iface_prop=
   | IPropFont of font_object
   | IPropBool of bool
   | IPropNil;;
+
+(** {2 Type convertion functions} *)
 
 let iprop_align p=match p with
   | IPropAlign x->x
@@ -79,6 +74,10 @@ let iprop_bool p=match p with
   | IPropBool x->x
   | _ -> raise Bad_iface_prop;;
 
+
+(** {2 Classes} *)
+
+(** Properties management main class *)
 class iface_properties=
 object(self)
   val mutable props=Hashtbl.create 2
@@ -108,20 +107,7 @@ object(self)
 
 end;;
 
-
-
-
-(** XML part *)
-(*
-<iface_properties>
- <prop_pattern name="pattern_normal" path="medias/iface/motif_bouton0.png"/>
- <prop_pattern name="pattern_clicked" path="medias/iface/motif_bouton1.png"/>
- <prop_margin name="margin_left" size="4"/>
- <prop_color name="foreground_color" r="0" g="0" b="0"/>
- <prop_align name="valign" align="left"/>
-</iface_properties>
-*)
-
+(** xml iface property parser *)
 class xml_iface_prop_parser=
 object(self)
   inherit xml_parser as super
@@ -195,6 +181,7 @@ object(self)
 
 end;;
 
+(** xml iface properties parser *)
 class xml_iface_props_parser=
 object(self)
   inherit xml_parser as super

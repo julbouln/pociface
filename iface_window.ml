@@ -24,7 +24,9 @@ open Iface_button;;
 open Iface_text;;
 open Iface_container;;
 
+(** Interface windows *)
 
+(** generic window object *)
 class iface_window (rid:string) (tipa) (tipa_min) (bgpa) fnt tcol (clgr) (mingr) (maxgr) ttxt (c:iface_object)=
 object(self)
   inherit iface_object 0 0 as super

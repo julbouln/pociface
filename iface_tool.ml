@@ -29,7 +29,9 @@ open Iface_container;;
 open Iface_properties;;
 
 
+(** Interface tools *)
 
+(** generic tool object *)
 class ['a] iface_tool (r:'a) w h=
 object(self)
   inherit iface_object w h as super
@@ -37,10 +39,11 @@ object(self)
   method get_rval=rval
 end;;
 
+(** icon tool object *)
 class ['a] iface_tool_icon (r:'a) f w h iw ih=
 object(self)
   inherit ['a] iface_tool r w h as super
-  val mutable ico=new iface_button_icon f iw ih w h
+  val mutable ico=new iface_button_icon f w h iw ih
 
   method show()=
     super#show();
@@ -59,6 +62,8 @@ object(self)
     ico#put();
 end;;
 
+
+(** icon tool graphic *)
 class ['a] iface_tool_graphic (r:'a) gr=
 object(self)
   inherit ['a] iface_tool r 0 0 as super
@@ -77,6 +82,7 @@ object(self)
       graphic#put();
 end;;
 
+(** icon tool graphic with label *)
 class ['a] iface_tool_graphic_with_label (r:'a) fnt label gr=
 object(self)
   inherit ['a] iface_tool_graphic r gr as super
@@ -105,7 +111,36 @@ object(self)
     lab#put();
 end;;
 
+(** icon tool icon with label *)
+class ['a] iface_tool_icon_with_label (r:'a) fnt label f w h iw ih=
+object(self)
+  inherit ['a] iface_tool_icon (r) f w h iw ih as super
+    val mutable lab=new iface_label_static fnt (0,0,0) label
 
+  method private reset_size()=
+    rect#set_size (ico#get_rect#get_w+lab#get_rect#get_w) (ico#get_rect#get_h);
+
+  initializer
+    self#reset_size();
+
+  method show()=
+    super#show();
+    lab#show();
+
+  method hide()=
+    super#hide();
+    lab#hide();
+
+  method move x y=
+    super#move (x) (y);
+    lab#move (x+ico#get_rect#get_w) (y);
+
+  method put()=
+    super#put();
+    lab#put();
+end;;
+
+(** generic toolbox object *)
 class virtual ['a] iface_toolbox (iv:'a) (c:('a) iface_tool array) =
 object(self)
   inherit iface_vcontainer c as super
@@ -171,22 +206,22 @@ end;;
 
 
 
-(** iface tool *)
 
 let string_of_color c=
   let (r,g,b)=c in
   (string_of_int r^","^string_of_int g^","^string_of_int b)
 
 (* tile cw ch *)
-
+(** iface tool color *)
 class iface_color_tool re (i:int) (c:color) w h=
 object
-  inherit [int] iface_tool_graphic 0
+  inherit [int] iface_tool_graphic_with_label 0
+    (new font_object "medias/Vera.ttf" 16) (string_of_color c) 
     (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c)
     ) as super
 end;;
 
-
+(** iface toolbox color *)
 class iface_color_toolbox id (vc:v_color)  (set_color:int->unit)=
 object(self)
   inherit [int] iface_toolbox (0) 

@@ -37,8 +37,8 @@ open Iface_text;;
 open Iface_button;;
 open Iface_theme;;
 open Iface_xml;;
-(** GUI objects class definitions *)
 
+(** Interface handler *)
 
 exception Iface_object_not_found of string;;
 

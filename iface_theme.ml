@@ -7,6 +7,9 @@ open Oxml;;
 open Iface_object;;
 open Iface_properties;;
 
+(** Interface theming *)
+
+(** xml iface style parser *)
 class xml_iface_style_parser=
 object(self)
   inherit xml_parser
@@ -27,6 +30,7 @@ object(self)
 
 end;;
 
+(** default pattern *)
 let default_pattern bgcol bordcol=
   let bg=(tile_box 24 24 bgcol) in
   let fg=(tile_rect 24 24 bordcol) in
@@ -35,6 +39,7 @@ let default_pattern bgcol bordcol=
     tile_free fg;
     bg;;
 
+(** default style *)
 let get_default_style n=
 
   let props=new iface_properties in
@@ -88,6 +93,7 @@ let get_default_style n=
 
 exception Iface_style_not_found of string;;
 
+(** iface theme *)
 class iface_theme (hs:(string,iface_properties) Hashtbl.t)=
 object
   val mutable styles=hs
@@ -101,6 +107,7 @@ object
 
 end;;
 
+(** xml iface theme parser *)
 class xml_iface_theme_parser=
 object(self)
   inherit [iface_properties] xml_stringhash_parser "iface_style" (fun()->new xml_iface_style_parser)
