@@ -126,7 +126,9 @@ object(self)
       | KeyRight -> if cur_pos<self#utf_length then cur_pos<-cur_pos + 1
       | KeyEchap -> ()
       | KeyCtrl -> ()
-      | KeyAlt -> ()
+      | KeyAltR -> ()
+      | KeyAltL -> ()
+      | KeyAltGr -> () 
       | _ ->
 	  match u with
 	    | KeyUnicode ch->let c=(UTF8.init 1 (fun i->ch)) in
@@ -221,7 +223,8 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
 	    ];
 	    [|dr|]
       )   
-	
+
+    method grab_focus=true	
 
     method private get_textedit=te
 

@@ -224,8 +224,19 @@ class interface=
 	  f obj
 	)
       in
-      self#foreach_object f;
 
+      let s p1 p2=
+	let (k1,o1)=p1 and
+	    (k2,o2)=p2 in
+	  (match o1#get_layer with
+	    | x when x < o2#get_layer -> -1
+	    | x when x = o2#get_layer -> 0
+	    | x when x > o2#get_layer -> 1
+	    | _ -> 0)
+      in
+	self#foreach_object_sorted s f;
+
+(*	self#foreach_object f *)
 
     method iface_get_object_at_position x y=
       self#iface_get_object (self#iface_get_object_name_at_position x y)
@@ -233,21 +244,16 @@ class interface=
 (** iface events *)
 
     method mouseover x y=
-(*
-	let f i obj=
-	  if i<>n then 
-            obj#on_mouseout x y in     
-	  Hashtbl.iter f objects;
-*)
       let mo=DynArray.create() in
-      self#iface_foreach_object_at_position x y (
+	self#iface_foreach_object_at_position x y (
 	fun obj->
 	  if obj#is_showing==true then 
 	    (
 	      DynArray.add mo obj#get_id;
 	      obj#on_mouseover x y; 
+	      ignore(obj#get_lua#exec_val_fun (OLuaVal.String "on_mouseover") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
 	    );
-      );
+	);
 	
 	let is_mo n=
 	  let r=ref false in
@@ -265,25 +271,26 @@ class interface=
 	  self#foreach_object f;
 
     method mouseout x y=
-(*      let o=(self#iface_get_object_at_position x y) in *)
-(*      self#iface_foreach_object_at_position x y ( *)
       self#foreach_object (
 	fun k o->
 	  if o#is_showing==true then ( 
 	    o#on_mouseout x y;
+	    ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_mouseout") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
 	  )
       )
 
     method click x y=
-(*      let o=(self#iface_get_object_at_position x y) in *)
       self#iface_foreach_object_at_position x y (
 	fun o->
-      if o#is_showing==true then ( 
-	o#on_click x y;
-	ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_click") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
-(*	ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ; *)
-
-      )
+	  if o#is_showing==true then ( 
+	    if o#grab_focus then
+	      self#set_focus o#get_id;
+	    
+	    o#on_click x y;
+	    ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_click") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
+	      (*	ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ; *)
+	      
+	  )
       )
 
 
@@ -312,8 +319,15 @@ class interface=
       if self#get_focus<>"none" then (
 	let o=self#iface_get_object self#get_focus in
 	  if o#is_showing==true then (
-(*	    ignore (interp#parse (o#get_id^".on_keypress("^string_of_int x^","^string_of_int y^")")) ;  *)
 	    o#on_keypress e;
+	  )
+      )
+
+    method keyrelease e=
+      if self#get_focus<>"none" then (
+	let o=self#iface_get_object self#get_focus in
+	  if o#is_showing==true then (
+	    o#on_keyrelease e;
 	  )
       )
     
@@ -381,6 +395,8 @@ object(self)
 	 (match ek with
 	    | KeyboardPress (k,uk)-> 
 		iface#keypress (k,uk)
+	    | KeyboardRelease (k,uk)-> 
+		iface#keyrelease (k,uk)
 	    | _ -> ()
 	 )
        | _ -> ()
@@ -391,4 +407,37 @@ object(self)
     super#lua_init();
   
 end;;
+
+open Stage;;
+open Core_xml;;
+
+class xml_iface_stage_parser=
+object (self)
+  inherit xml_stage_parser as super
+
+  method parse_child k v=
+    super#parse_child k v;
+
+(** object initial init *)
+  method init_object o=
+    o#set_lua_script (lua);
+
+
+  method get_val=
+    let ofun()=
+      let o=
+	new iface_stage generic_cursor (string_of_val (args_parser#get_val#get_val (`String "file")))
+      in
+	self#init_object (o:>stage);
+	(o:>stage)	  
+    in      
+      (id,ofun)
+
+end;;
+
+let xml_iface_stages_parser()=
+  let p=xml_factory_stages_parser() in
+    print_string "add iface_stage parser";print_newline();
+    p#parser_add "iface_stage" (fun()->new xml_iface_stage_parser);
+    p;;
 

@@ -35,6 +35,9 @@ object(self)
   inherit canvas_object
   inherit lua_object as lo
 
+  initializer
+    rect#set_size w h
+
   val mutable parent=None
   method set_parent (p:iface_object option)=parent<-p
   method get_parent=parent
@@ -53,8 +56,9 @@ object(self)
   val mutable mouseover=(function()->())
   val mutable mouseout=(function()->())
     
-  val mutable focused=false
-    
+
+  method grab_focus=false
+  val mutable focused=false    
   method set_focused f=focused<-f
     
     
@@ -108,6 +112,10 @@ object(self)
   method lua_init()=
     lua#set_val (OLuaVal.String "on_click") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
     lua#set_val (OLuaVal.String "on_release") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+
+    lua#set_val (OLuaVal.String "on_mouseover") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+    lua#set_val (OLuaVal.String "on_mouseout") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+
     lua#set_val (OLuaVal.String "show") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
     lua#set_val (OLuaVal.String "hide") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
     lua#set_val (OLuaVal.String "move") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);

@@ -54,6 +54,8 @@ class iface_pbutton rid npattern cpattern=
 object
   inherit iface_object 0 0 as super
 
+  method grab_focus=true
+
   val mutable ngr=new iface_pgraphic_object npattern
   val mutable cgr=new iface_pgraphic_object cpattern
 
