@@ -32,6 +32,9 @@ class iface_container c=
     val mutable valign=VAlignMiddle
     val mutable halign=HAlignLeft
 
+    method set_valign v=valign<-v
+    method set_halign h=halign<-h
+
     val mutable vrect=new rectangle 0 0 0 0 
     method get_vrect=vrect
 
@@ -152,6 +155,18 @@ class iface_container c=
       super#move x y;
       vrect#set_position x y;
 
+    method private max_size=
+      let w=ref 0 in
+      let h=ref 0 in
+      self#foreach (
+	fun obj->
+	  if obj#get_rect#get_h> !h then
+	    h:=obj#get_rect#get_h;
+	  if obj#get_rect#get_w> !w then
+	    w:=obj#get_rect#get_w
+      );
+	(!w,!h)
+
   end;;
 
 
@@ -187,10 +202,12 @@ class iface_vcontainer c=
 	
     method move x y=
       super#move x y;
+      let (mw,mh)=self#max_size in
       self#foreachi (
 	fun i obj->
 	  let (ax,ay)=self#pos_from_align obj#get_rect in
-	  obj#move (x+ax) (y+ (obj#get_rect#get_h*i))
+
+	  obj#move (x+ax) (y+ (mh*i))
       )
 
 
@@ -227,10 +244,11 @@ class iface_hcontainer c=
 
     method move x y=
       super#move x y;
+      let (mw,mh)=self#max_size in
       self#foreachi (
       fun i obj->
 	let (ax,ay)=self#pos_from_align obj#get_rect in
-	obj#move (x+(obj#get_rect#get_w*i)) (y+ay)
+	obj#move (x+(mw*i)) (y+ay)
      )
   end;;
 
