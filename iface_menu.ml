@@ -28,7 +28,7 @@ open Iface_object;;
 open Iface_text;;
 open Iface_button;;
 open Iface_container;;
-
+open Iface_properties;;
 
 (** select box widget (DEPRECATED) *)
 class iface_selectbox_OLD fnt e=
@@ -390,7 +390,12 @@ object(self)
 
   method private parent_position=
     match self#get_parent with
-      | Some p-> (p#get_vrect#get_x,p#get_vrect#get_y)
+      | Some p-> (p#get_rect#get_x,p#get_rect#get_y)
+      | None -> (0,0)
+
+  method private relative_position=
+    match self#get_parent with
+      | Some p-> (rect#get_x-p#get_rect#get_x,rect#get_y-p#get_rect#get_y)
       | None -> (0,0)
 
   method private pos_parent_position x y=
@@ -398,6 +403,7 @@ object(self)
     match pos with
       | MenuRight -> ((x+pw),y)
       | MenuBottom ->(x,(y+ph));
+
 
   method private pos_parent_size w h=
     let (pw,ph)=self#parent_size in
@@ -423,16 +429,24 @@ object(self)
 
 
   method move x y=
-    vrect#set_position x y;
     super#move x y;
-    let (nx,ny)=self#pos_parent_position x y in
-    let (brw,brh)=fond#border_size in
-      tobj#move (x) (y);
-      menu#move (nx+brw) (ny+brh);
+    vrect#set_position x y;
+    tobj#move (x) (y);
+
+    let (tpx,tpy)=self#parent_position in
+    let (px,py)=((x-tpx),(y-tpy)) in
+    let (nx,ny)=self#pos_parent_position x y in 
       fond#move nx ny;
+
+    let (brw,brh)=fond#border_size in
+      let ah=(menu#get_rect#get_h mod brh)/2 and
+	  aw=(menu#get_rect#get_w mod brw)/2 in
+	menu#move (nx+brw-aw) (ny+brh-ah);
+
 
 
   initializer
+    
     menu<-new iface_vcontainer
     (
       let sms=DynArray.create() in
@@ -455,7 +469,7 @@ object(self)
 
 	DynArray.to_array a    
     );
-
+    menu#set_halign HAlignLeft;
     self#init_size();
 
 
@@ -466,11 +480,12 @@ object(self)
     fond#resize (menu#get_rect#get_w+(brw*2)) (menu#get_rect#get_h+(brh*2)); 
 
     rect#set_size tobj#get_rect#get_w tobj#get_rect#get_h;
-    vrect#set_size tobj#get_rect#get_w tobj#get_rect#get_h;
+    vrect#set_size (tobj#get_rect#get_w) (tobj#get_rect#get_h);
 
 
   method reset_size()=
     menu#reset_size();
+    let (brw,brh)=fond#border_size in
     if menu#is_showing then (
       let (nw,nh)=self#pos_parent_size menu#get_vrect#get_w menu#get_vrect#get_h in
 	vrect#set_size (nw) (nh);
@@ -479,7 +494,7 @@ object(self)
       (
       let (nw,nh)=self#pos_parent_size_or tobj#get_vrect#get_w tobj#get_vrect#get_h in 
 (*	let (nw,nh)=(tobj#get_vrect#get_w,tobj#get_vrect#get_h) in *)
-	vrect#set_size nw nh;
+	vrect#set_size (nw) (nh);
       )
 
   method open_menu()=
@@ -557,7 +572,7 @@ object(self)
 		  ) c;
 	DynArray.to_array a        
     );
-
+    menus#set_halign HAlignLeft;
     self#init_size();
 
 
@@ -582,7 +597,9 @@ object(self)
     vrect#set_position x y;
 
     let (brw,brh)=fond#border_size in
-      menus#move (x+brw) (y+brh);
+    let ah=(menus#get_rect#get_h mod brh)/2 and
+	aw=(menus#get_rect#get_w mod brw)/2 in
+      menus#move (x+brw-aw) (y+brh-ah);
       fond#move x y;
 
   method put()=
@@ -669,6 +686,7 @@ object(self)
   initializer 
     selected#move (-32) (-32);
     self#reset_size();
+
 
   method move x y=
     vrect#set_position x y;

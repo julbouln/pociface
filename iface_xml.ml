@@ -28,6 +28,7 @@ open Iface_text;;
 open Iface_button;;
 open Iface_container;;
 open Iface_menu;;
+open Iface_properties;;
 
 open Iface_theme;;
 
@@ -268,9 +269,27 @@ object(self)
 
   val mutable container=Array.create 1 "none"
 
+  val mutable valign=VAlignMiddle
+  val mutable halign=HAlignMiddle
+
   method parse_child k v=
     super#parse_child k v;
     match k with
+      | "valign" -> let p=(new xml_string_parser "align") in p#parse v;
+	  (match p#get_val with
+	     | "top" -> valign<-VAlignTop
+	     | "middle" -> valign<-VAlignMiddle
+	     | "bottom" -> valign<-VAlignBottom
+	     | _ -> ()
+	  );	     
+
+      | "halign" -> let p=(new xml_string_parser "align") in p#parse v;
+	  (match p#get_val with
+	     | "left" -> halign<-HAlignLeft
+	     | "middle" -> halign<-HAlignMiddle
+	     | "right" -> halign<-HAlignRight
+	     | _ -> ()
+	  );	     
       | "container" -> let p=(new xml_stringlist_parser "iface_object" (fun()->new xml_string_parser "id")) in p#parse v;container<-p#get_array
       | _ -> ()    
  
@@ -288,6 +307,8 @@ object(self)
 		  DynArray.to_array a
 		      
 	      ) in
+	o#set_valign valign;
+	o#set_halign halign;
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
@@ -301,9 +322,27 @@ object(self)
 
   val mutable container=Array.create 1 "none"
 
+  val mutable valign=VAlignMiddle
+  val mutable halign=HAlignMiddle
+
   method parse_child k v=
     super#parse_child k v;
     match k with
+      | "valign" -> let p=(new xml_string_parser "align") in p#parse v;
+	  (match p#get_val with
+	     | "top" -> valign<-VAlignTop
+	     | "middle" -> valign<-VAlignMiddle
+	     | "bottom" -> valign<-VAlignBottom
+	     | _ -> ()
+	  );	     
+
+      | "halign" -> let p=(new xml_string_parser "align") in p#parse v;
+	  (match p#get_val with
+	     | "left" -> halign<-HAlignLeft
+	     | "middle" -> halign<-HAlignMiddle
+	     | "right" -> halign<-HAlignRight
+	     | _ -> ()
+	  );	     
       | "container" -> let p=(new xml_stringlist_parser "iface_object" (fun()->new xml_string_parser "id")) in p#parse v;container<-p#get_array
       | _ -> ()    
  
@@ -321,6 +360,8 @@ object(self)
 		  DynArray.to_array a
 		      
 	      ) in
+	o#set_valign valign;
+	o#set_halign halign;
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in

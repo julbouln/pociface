@@ -193,9 +193,14 @@ object(self)
 
 *)
 
-  method put()=
+  method real_size=
     let cw=rect#get_w/crect#get_w and
 	ch=rect#get_h/crect#get_h in    
+      (cw*crect#get_w,ch*crect#get_h)
+
+  method put()=
+    let cw=rect#get_w/crect#get_w -1 and
+	ch=rect#get_h/crect#get_h -1 in    
       for i=0 to cw do
 	for j=0 to ch do
 	  (match (i,j) with
@@ -238,7 +243,8 @@ object(self)
 
   method resize nw nh=
     gr#get_rect#set_size nw nh;
-    rect#set_size nw nh;
+    let (rw,rh)=gr#real_size in
+      rect#set_size rw rh;
 
   method put()=
     if self#is_showing then (

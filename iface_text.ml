@@ -224,7 +224,7 @@ end;;
 exception Text_error of string;;
 
 (* FIXME : rename to graphic_text *)
-class text nid fnt (col:color)=
+class graphic_text nid fnt (col:color)=
 object(self)
   inherit graphic_generic_object nid
   val mutable graphic=new graphic_generic_object nid
@@ -340,7 +340,7 @@ object(self)
     text<-self#cut_string2 t;
 
     graphic<-
-    new graphic_dyn_object (id^"/text") (List.length self#get_text)
+      new graphic_dyn_object (id^"/text") (List.length self#get_text)
       (function k-> (
 	 fnt#create_text (List.nth self#get_text k) self#get_color
        ));
@@ -371,27 +371,24 @@ object(self)
     inherit iface_object bw (fnt#get_height) as super
 
     val mutable bg=new iface_pgraphic_object bpgraph
-    val mutable text=new text (rid^"/text_box") fnt color
+    val mutable text=new graphic_text (rid^"/text_box") fnt color
 
     initializer
       text#set_lines il;
-      text#set_max_size (bw);
+
       let (brw,brh)=bg#border_size in
-      rect<-new rectangle 0 0 (bw+(brw*2)) (il*fnt#get_height+(brh*2));
-      bg#resize rect#get_w rect#get_h;
+	text#set_max_size (bw-(brw*3));
+	bg#resize (bw+(brw*2)) (il*fnt#get_height+(brh*2));
+	rect#set_size bg#get_rect#get_w bg#get_rect#get_h;
+
 
     method move x y=
-      let (brw,brh)=bg#border_size in
-      text#move (x+brw) (y+brh);
+      super#move (x) (y);
       bg#move (x) (y);
-      rect#set_position (x) (y)
-
-
-    method on_click x y=
-      let rx=x-self#get_rect#get_x  in
-	click()
-
-
+      let (brw,brh)=bg#border_size in
+(*      let ah=(text#get_rect#get_h mod brh)/2 and
+	  aw=(text#get_rect#get_w mod brw)/2 in*)
+      text#move (x+brw) (y+brh);
 
     method private auto_lines()=
       let l=List.length text#get_text in
@@ -406,16 +403,14 @@ object(self)
       super#show();
       bg#show();
 
-
     method set_data_text t=
       super#set_data_text (t); 
       text#set_text (data_text);
 
     method put()=
-
       if showing==true then (	  
 	let (brw,brh)=bg#border_size in
-	rect#set_size (bw+(brw*2)) ((fnt#get_height*text#get_lines)+(brh*2));
+
 	bg#put();
 	if data_text<>"" then (
 	  text#set_id self#get_id;
@@ -443,13 +438,7 @@ class iface_text_edit_box rid bptile fnt color bw il=
 
     method on_keypress e=
       (match (parse_key e.ebut) with
-      | KeyBackspace -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyReturn -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
       | KeyShift -> ()
-      | KeyUp -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyDown -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyLeft -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyRight -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
       | _ -> 
 (*	  if UTF8.length te#get_text< lines*text#get_max_size then *)
 (*	  text#set_text te#get_text;
@@ -470,7 +459,7 @@ class iface_text_edit_box rid bptile fnt color bw il=
       if showing=true then
 	if focused then (
 	  if cur_c>cur_refresh/2 then (
-	    let cu=tile_rect 1 (fnt#get_height + 4) color in
+	    let cu=tile_rect 1 (fnt#get_height) color in
 	    let cline=text#line_of_pos te#get_cur_pos in
 	    let mline=(te#get_cur_pos - (text#lines_size cline)) in
 	    let tt=

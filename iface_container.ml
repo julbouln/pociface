@@ -30,7 +30,7 @@ class iface_container c=
     val mutable content=c
 
     val mutable valign=VAlignMiddle
-    val mutable halign=HAlignLeft
+    val mutable halign=HAlignMiddle
 
     method set_valign v=valign<-v
     method set_halign h=halign<-h
@@ -137,16 +137,17 @@ class iface_container c=
 
 
     method pos_from_align (orect:rectangle)=
+      let (mw,mh)=self#max_size() in
       (
 	(match halign with
 	   | HAlignLeft -> 0
-	   | HAlignRight -> rect#get_w - orect#get_w
-	   | HAlignMiddle -> rect#get_w/2 - orect#get_w/2
+	   | HAlignRight -> mw - orect#get_w
+	   | HAlignMiddle -> mw/2 - orect#get_w/2
 	),
 	(match valign with
 	   | VAlignTop -> 0
-	   | VAlignBottom -> rect#get_h - orect#get_h
-	   | VAlignMiddle -> rect#get_h/2 - orect#get_h/2
+	   | VAlignBottom -> mh - orect#get_h
+	   | VAlignMiddle -> mh/2 - orect#get_h/2
 	)
       )
 
@@ -155,7 +156,7 @@ class iface_container c=
       super#move x y;
       vrect#set_position x y;
 
-    method private max_size=
+    method private max_size()=
       let w=ref 0 in
       let h=ref 0 in
       self#foreach (
@@ -179,9 +180,10 @@ class iface_vcontainer c=
     method reset_size()=
       let w=ref 0 in
       let h=ref 0 in
+      let (mw,mh)=self#max_size() in	
       self#foreach (
       let f obj=
-	h:=!h+obj#get_rect#get_h;
+	h:=!h+mh;
 	if obj#get_rect#get_w> !w then
 	  w:=obj#get_rect#get_w
       in f
@@ -202,12 +204,11 @@ class iface_vcontainer c=
 	
     method move x y=
       super#move x y;
-      let (mw,mh)=self#max_size in
+      let (mw,mh)=self#max_size() in
       self#foreachi (
 	fun i obj->
 	  let (ax,ay)=self#pos_from_align obj#get_rect in
-
-	  obj#move (x+ax) (y+ (mh*i))
+	  obj#move (x+ax) (y+ (mh*i)+ay)
       )
 
 
@@ -221,9 +222,10 @@ class iface_hcontainer c=
     method reset_size()=
       let w=ref 0 in
       let h=ref 0 in
+      let (mw,mh)=self#max_size() in	
       self#foreach (
       let f obj=
-	w:=!w+obj#get_rect#get_w;
+	w:=!w+mw;
 	if obj#get_rect#get_h> !h then
 	  h:=obj#get_rect#get_h
       in f
@@ -244,11 +246,11 @@ class iface_hcontainer c=
 
     method move x y=
       super#move x y;
-      let (mw,mh)=self#max_size in
+      let (mw,mh)=self#max_size() in
       self#foreachi (
       fun i obj->
 	let (ax,ay)=self#pos_from_align obj#get_rect in
-	obj#move (x+(mw*i)) (y+ay)
+	obj#move (x+(mw*i)+ax) (y+ay)
      )
   end;;
 

@@ -61,8 +61,8 @@ class iface_button_with_label fnt txt file w h=
       super#put();
       if showing==true then 
 	(
-	 label#move (graphic#get_rect#get_x + ((graphic#get_rect#get_w - label#get_rect#get_w)/2)) (graphic#get_rect#get_y + ((graphic#get_rect#get_h - label#get_rect#get_h)/2));
-	 label#put();
+	  label#move (graphic#get_rect#get_x + ((graphic#get_rect#get_w - label#get_rect#get_w)/2)) (graphic#get_rect#get_y + ((graphic#get_rect#get_h - label#get_rect#get_h)/2));
+	  label#put();
 	)
 
   end;;
@@ -165,11 +165,9 @@ object
       ngr#put()
 
   method private resize nw nh=
-    rect#set_size nw nh;
     ngr#resize nw nh;
     cgr#resize nw nh;
-
-    
+    rect#set_size ngr#get_rect#get_w ngr#get_rect#get_h;    
 end;;
 
 
@@ -183,7 +181,9 @@ object(self)
 	
     method private init_size()=
       let (bw,bh)=ngr#border_size in
-      super#resize (label#get_rect#get_w+(bw*2)) (label#get_rect#get_h+(bh*2))
+
+	print_string "PBUTTON: ";print_int (label#get_rect#get_h mod bh);print_newline();
+	super#resize (label#get_rect#get_w+(bw*2)) (label#get_rect#get_h+(bh*2))
 
     initializer
       self#init_size();
@@ -201,7 +201,9 @@ object(self)
     method move x y=
       super#move x y;
       let (bw,bh)=ngr#border_size in
-      label#move (x+bw) (y+bh);
+      let ah=(label#get_rect#get_h mod bh)/2 and
+	  aw=(label#get_rect#get_w mod bw)/2 in
+	label#move (x+bw-aw) (y+bh-ah);
 
     method put()=
 
