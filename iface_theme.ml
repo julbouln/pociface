@@ -1,4 +1,5 @@
 open Medias;;
+open Graphic;;
 open Font;;
 open Drawing;;
 open Binding;;
@@ -168,7 +169,7 @@ let default_graph w h bgcol bordcol=
     bg;;
 *)
 let default_graph w h color=
-  new graphic_from_drawing "default_rect" (
+  new graphic_from_drawing "main" "default_rect" (
     fun()->
       let dr=drawing_vault#new_drawing() in
 	dr#exec_op_create_from_list "rect" 

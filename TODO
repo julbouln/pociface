@@ -1,0 +1,16 @@
+
+* fixes/improvement
+- add padding and margin in button and menu
+- valign and halign in button
+- add auto focus
+- fix layer issue
+- move iface_properties to oval API ?
+- use graphic_object xml capacity for graphic and pattern properties
+- add tab/enter on text edit (add form object?)
+
+* new objects
+- add a window manager
+- create select menu 
+- create check button
+- create radio button
+- create file open/save dialog

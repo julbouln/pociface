@@ -50,10 +50,9 @@ exception Iface_object_not_found of string;;
 class interface=
   object (self)
     inherit [iface_object] generic_object_handler
-    val mutable canvas=new canvas
 
-    val mutable interp=new lua_interp
-    method get_interp=interp
+    inherit lua_object as lo
+    val mutable canvas=new canvas
 
     method init_default_pattern()=
       drawing_vault#add_drawing_fun_from_list "default_pattern_fun"
@@ -92,7 +91,7 @@ class interface=
 
     initializer 
       self#init_default_pattern();
-      self#init_lua();
+      self#lua_init();()
 
     val mutable iface_parser=new xml_iface_parser 
     method iface_add_xml_parser p f=iface_parser#parser_add p f
@@ -116,23 +115,23 @@ class interface=
 	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
 
 	p#parse iface_xml;
-        p#init self#iface_add_object self#get_interp
+        p#init self#iface_add_object
 
-    method init_lua()=
-      interp#set_module_val "iface" "set_focus" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
-      interp#set_module_val "iface" "show_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#show_object);
-      interp#set_module_val "iface" "hide_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
-      interp#set_module_val "iface" "object_get_text" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
-      interp#set_global_val "exit" (OLuaVal.efunc (OLuaVal.int **->> OLuaVal.unit) exit);
+    method lua_init()=
+      lua#set_val (OLuaVal.String "set_focus") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
+      lua#set_val (OLuaVal.String "show_object") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#show_object);
+      lua#set_val (OLuaVal.String "hide_object") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
+      lua#set_val (OLuaVal.String "object_get_text") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
+      lo#lua_init()
 
-      interp#set_global_val "int_of_string" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.int) int_of_string);
-      
     val mutable focus="none"
 
 
 (** general iface functions *)
 
     method iface_add_object (name:string) (obj:iface_object)=
+
+      self#lua_parent_of name (obj:>lua_object);
       self#add_object (Some name) obj;
       canvas#add_obj (obj:>canvas_object);
 
@@ -281,7 +280,8 @@ class interface=
 	fun o->
       if o#is_showing==true then ( 
 	o#on_click x y;
-	ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ;
+	ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_click") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
+(*	ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ; *)
 
       )
       )
@@ -294,7 +294,8 @@ class interface=
 	if i=n then (
 	  if obj#is_showing==true then (
 	    obj#on_release x y;
-	    ignore (interp#parse (obj#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ;
+	    ignore(obj#get_lua#exec_val_fun (OLuaVal.String "on_release") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
+(*	    ignore (interp#parse (obj#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ; *)
 	  );
 	);
 	let ro=obj#get_release in
@@ -349,7 +350,7 @@ class interface=
 
 class iface_stage curs file=
 object(self)
-  inherit stage curs
+  inherit stage curs as super
 
   val mutable iface=new interface
 
@@ -384,6 +385,10 @@ object(self)
 	 )
        | _ -> ()
     )
+
+  method lua_init()=
+    self#lua_parent_of "iface" (iface:>lua_object);
+    super#lua_init();
   
 end;;
 

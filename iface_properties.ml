@@ -2,7 +2,7 @@ open Generic;;
 open Font;;
 open Medias;;
 open Oxml;;
-
+open Graphic;;
 
 (** Interface properties *)
 (** Properties are used in all interface object to configure them *)
@@ -128,11 +128,11 @@ object(self)
 	    p#parse n;
 	    let p2=(new xml_size_parser) in 
 	      p2#parse n;
-	    value<-IPropGraphic (fun()->(new graphic_from_file p#get_val p2#get_w p2#get_h))
+	    value<-IPropGraphic (fun()->(new graphic_from_file "none" p#get_val p2#get_w p2#get_h))
       | "prop_pattern" -> 
 	  let p=(new xml_string_parser "path") in 
 	    p#parse n;
-	    value<-IPropPattern (fun()-> (new graphic_pattern_file p#get_val))
+	    value<-IPropPattern (fun()-> (new graphic_pattern_file "none" p#get_val))
       | "prop_font" ->
 	  let p=(new xml_font_parser) in 
 	    p#parse n;

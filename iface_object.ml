@@ -21,7 +21,7 @@
 open Rect;;
 open Generic;;
 open Medias;;
-
+open Graphic;;
 open Event;;
 
 open Olua;;
@@ -31,7 +31,9 @@ open Olua;;
 (** parent object *)
 class iface_object w h=
 object(self)
+  inherit generic_object
   inherit canvas_object
+  inherit lua_object as lo
 
   val mutable parent=None
   method set_parent (p:iface_object option)=parent<-p
@@ -103,41 +105,19 @@ object(self)
   method set_data_text d=data_text<-d
   method get_data_text=data_text
 
-  (* lua NEW *)
-  val mutable lobj=new lua_obj
+  method lua_init()=
+    lua#set_val (OLuaVal.String "on_click") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+    lua#set_val (OLuaVal.String "on_release") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+    lua#set_val (OLuaVal.String "show") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
+    lua#set_val (OLuaVal.String "hide") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
+    lua#set_val (OLuaVal.String "move") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
+    lua#set_val (OLuaVal.String "set_data_text") (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
+    lua#set_val (OLuaVal.String "get_data_text") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
+    lo#lua_init();
 
-  method lua_table()=
-    lobj#set_val "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-    lobj#set_val "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-    lobj#set_val "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
-    lobj#set_val "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
-    lobj#set_val "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
-    lobj#set_val "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
-    lobj#set_val "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
-    
     
 
      
-  (* lua *)
-  val mutable lua=""
-  method set_lua l=lua<-l
-  method get_lua=lua
-    
-  method lua_register (interp:lua_interp)=
-    let lcode=(id^"={};\n") in
-      interp#parse lcode;();
-      
-      interp#set_module_val id "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-      interp#set_module_val id "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
-      
-      interp#set_module_val id "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
-      interp#set_module_val id "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
-      interp#set_module_val id "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
-      
-      interp#set_module_val id "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
-      interp#set_module_val id "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
-      
-      interp#parse lua;();
 	  
 end;;
 
@@ -160,7 +140,7 @@ class iface_graphic_object gr w h=
 (** graphic object from file *)
 class iface_graphic_file_object file w h=
   object (self)
-    inherit iface_graphic_object (new graphic_from_file file w h) w h
+    inherit iface_graphic_object (new graphic_from_file "main" file w h) w h
 (*(new graphic_scr_resized_object w h file false false) w h as super*)
 
   end;;

@@ -94,7 +94,7 @@ object (self)
     if show then
       o#show();
     o#move (video#f_size_w x) (video#f_size_h y);    
-    o#set_lua lua;
+    o#set_lua_script lua;
     
   method get_val=
     let ofun()=
@@ -635,13 +635,13 @@ object(self)
 	      DynArray.add objs sp#get_val
       | _ ->()
 
-  method init (add_obj:string->iface_object->unit) (get_interp:lua_interp)=
+  method init (add_obj:string->iface_object->unit)=
     DynArray.iter (
       fun (n,o)->
 	print_string ("IFACE_XML: add object "^n);print_newline();
 	let no=o() in	  	  
-	  add_obj n (no);				 
-	  no#lua_register get_interp;
+	  no#lua_init();
+	  add_obj n (no);
     ) objs;
       
 end;;
