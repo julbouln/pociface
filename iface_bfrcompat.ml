@@ -667,12 +667,12 @@ class interface_BFR bgfile w h=
 	    )
 	)
   end;;
-
+(*
 class iface_object_types=
 object
   inherit [iface_object] obj_types (new iface_object 0 0)
 end;;
-
+*)
 (* some functions *)
 let iface_add_object iface obj=
   iface#add_object (obj);

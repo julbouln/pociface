@@ -2,6 +2,8 @@ open Low;;
 
 open Medias;;
 
+open Drawing;;
+
 open Oxml;;
 
 open Iface_object;;
@@ -32,10 +34,58 @@ end;;
 
 (** default pattern *)
 let default_pattern bgcol=
-  let bg=(tile_box 24 24 bgcol) in
+  let dr=new poclow_drawing_object in
+    dr#create 24 24 bgcol;
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
       dcol=(r-16,g-16,b-16) in
+    dr#exec_op_write "line" [
+	DrawValPosition (0,0);
+	DrawValPosition (23,0);
+	DrawValColor lcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (1,1);
+	DrawValPosition (22,1);
+	DrawValColor lcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (0,0);
+	DrawValPosition (0,23);
+	DrawValColor lcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (1,1);
+	DrawValPosition (1,22);
+	DrawValColor lcol;
+      ];
+
+    dr#exec_op_write "line" [
+	DrawValPosition (23,0);
+	DrawValPosition (23,23);
+	DrawValColor dcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (22,1);
+	DrawValPosition (22,22);
+	DrawValColor dcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (0,23);
+	DrawValPosition (23,23);
+	DrawValColor dcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (1,22);
+	DrawValPosition (22,22);
+	DrawValColor dcol;
+      ];
+    dr;;
+(*  let bg=(tile_box 24 24 bgcol) in
+  let (r,g,b)=bgcol in
+  let lcol=(r+16,g+16,b+16) and
+      dcol=(r-16,g-16,b-16) in
+
     tile_line bg (0,0) (23,0) lcol;
     tile_line bg (1,1) (22,1) lcol;
     tile_line bg (0,0) (0,23) lcol;
@@ -45,8 +95,57 @@ let default_pattern bgcol=
     tile_line bg (0,23) (23,23) dcol;
     tile_line bg (1,22) (22,22) dcol;
     bg;;
+*)
 
 let default_pattern_clicked bgcol=
+  let dr=new poclow_drawing_object in
+    dr#create 24 24 bgcol;
+  let (r,g,b)=bgcol in
+  let lcol=(r+16,g+16,b+16) and
+      dcol=(r-16,g-16,b-16) in
+    dr#exec_op_write "line" [
+	DrawValPosition (0,0);
+	DrawValPosition (23,0);
+	DrawValColor dcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (1,1);
+	DrawValPosition (22,1);
+	DrawValColor dcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (0,0);
+	DrawValPosition (0,23);
+	DrawValColor dcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (1,1);
+	DrawValPosition (1,22);
+	DrawValColor dcol;
+      ];
+
+    dr#exec_op_write "line" [
+	DrawValPosition (23,0);
+	DrawValPosition (23,23);
+	DrawValColor lcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (22,1);
+	DrawValPosition (22,22);
+	DrawValColor lcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (0,23);
+	DrawValPosition (23,23);
+	DrawValColor lcol;
+      ];
+    dr#exec_op_write "line" [
+	DrawValPosition (1,22);
+	DrawValPosition (22,22);
+	DrawValColor lcol;
+      ];
+    dr;;
+(*
   let bg=(tile_box 24 24 bgcol) in
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
@@ -60,6 +159,7 @@ let default_pattern_clicked bgcol=
     tile_line bg (0,23) (23,23) lcol;
     tile_line bg (1,22) (22,22) lcol;
     bg;;
+*)
 
 let default_graph w h bgcol bordcol=
   let bg=(tile_box w h bgcol) in
@@ -76,13 +176,13 @@ let get_default_style n=
     (match n with
        | "iface_text_edit" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" (default_pattern_clicked(200,200,200))));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" "default_pattern_text:simple"));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_text_edit_box" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" (default_pattern_clicked(200,200,200))));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" "default_pattern_text:simple"));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
@@ -103,28 +203,29 @@ let get_default_style n=
      
        | "iface_menu" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" (default_pattern(172,172,172)))));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" "default_pattern:simple")));
 	   ]
        | "iface_menubar" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" (default_pattern(172,172,172)))));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" "default_pattern:simple")));
 	   ]
        | "iface_window" ->props#from_list
 	   [
-	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern "default" (default_pattern(172,172,172))));
-	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern "default_clicked" (default_pattern(128,128,128))));
-	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_clicked" (default_pattern(128,128,128))));
+	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
+	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
+	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0));
-	     ("close_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
+(*	     ("close_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
 	     ("minimize_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
 	     ("maximize_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
+*)
 	   ];
        | _ ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default" (default_pattern(172,172,172))));
-	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default" (default_pattern(172,172,172))));
-	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_clicked" (default_pattern_clicked(128,128,128))));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
+	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
+	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
 	     ("font",IPropFont (new font_object "none" 8));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ];

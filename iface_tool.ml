@@ -18,7 +18,7 @@
 *)
 open Low;;
 
-
+open Drawing;;
 open Medias;;
 open Olua;;
 
@@ -201,7 +201,13 @@ class iface_color_tool re (i:int) (c:color) w h=
 object
   inherit [int] iface_tool_graphic 0
 (*    (new font_object "medias/Vera.ttf" 16) (string_of_color c)  *)
-    (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c)
+(*    (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c) *)
+    (new graphic_from_drawing (re^":"^string_of_color c) 
+       (fun()->
+	  let dr=drawing_vault#new_drawing() in
+	    dr#create w h c;
+	    [|dr|]
+       )
     ) as super
 end;;
 

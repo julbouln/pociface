@@ -52,12 +52,12 @@ class iface_graphic_button gr w h=
   end;;
 
 (** sample button object with pattern *)
-class iface_pbutton rid nptile cptile=
+class iface_pbutton rid npattern cpattern=
 object
   inherit iface_object 0 0 as super
 
-  val mutable ngr=new iface_pgraphic_object nptile
-  val mutable cgr=new iface_pgraphic_object cptile
+  val mutable ngr=new iface_pgraphic_object npattern
+  val mutable cgr=new iface_pgraphic_object cpattern
 
   val mutable is_clicked=false
   val mutable is_mouseover=false
@@ -102,9 +102,9 @@ end;;
 
 
 (** button with label and pattern *)
-class iface_pbutton_with_label rid nptile cptile fnt tcol txt=
+class iface_pbutton_with_label rid npattern cpattern fnt tcol txt=
 object(self)
-    inherit iface_pbutton rid nptile cptile as super
+    inherit iface_pbutton rid npattern cpattern as super
 
     val mutable label=
       (new iface_label_static fnt tcol txt)

@@ -153,7 +153,8 @@ class iface_graphic_object gr w h=
 (** graphic object from file *)
 class iface_graphic_file_object file w h=
   object (self)
-    inherit iface_graphic_object (new graphic_scr_resized_object w h file false false) w h as super
+    inherit iface_graphic_object (new graphic_object_from_file file w h) w h
+(*(new graphic_scr_resized_object w h file false false) w h as super*)
 
   end;;
 

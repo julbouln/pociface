@@ -29,7 +29,7 @@ type iface_prop=
   | IPropAlign of iface_align
   | IPropPadding of int
   | IPropMargin of int
-  | IPropGraphic of (unit-> graphic_generic_object)
+  | IPropGraphic of (unit-> graphic_cached_object)
   | IPropPattern of (unit -> graphic_pattern)
   | IPropColor of color
   | IPropFont of font_object
@@ -125,7 +125,7 @@ object(self)
 	    p#parse n;
 	    let p2=(new xml_size_parser) in 
 	      p2#parse n;
-	    value<-IPropGraphic (fun()->(new graphic_object p2#get_w p2#get_h p#get_val false false))
+	    value<-IPropGraphic (fun()->(new graphic_object_from_file p#get_val p2#get_w p2#get_h))
       | "prop_pattern" -> 
 	  let p=(new xml_string_parser "path") in 
 	    p#parse n;
