@@ -218,7 +218,7 @@ let string_of_color c=
 (** iface tool color *)
 class iface_color_tool re (i:int) (c:color) w h=
 object
-  inherit [int] iface_tool_graphic 0
+  inherit [int] iface_tool_graphic i
 (*    (new font_object "medias/Vera.ttf" 16) (string_of_color c)  *)
 (*    (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c) *)
     (new graphic_from_drawing (re^":"^string_of_color c) 
@@ -253,22 +253,8 @@ object(self)
     )
     as super
 
-  method private init()=
-    self#reset_size();
-
-      
   initializer
-    self#init();
-
-
-  method show()=
-    super#show();
-
-  method hide()=
-    super#hide();
-
-  method move x y=
-    super#move x y;
+    self#reset_size();
 
   method on_click x y=
     print_string "IFACE : color toolbox click";print_newline();
@@ -276,9 +262,6 @@ object(self)
     if current_val<>(-1) then (
 	set_color current_val;
       )
-
-  method put()=
-    super#put();    
 
   method lua_register i=
     super#lua_register i;
