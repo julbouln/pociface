@@ -221,12 +221,10 @@ end;;
 exception Text_error of string;;
 
 (* FIXME must inherit graphic_generic_object *)
-class text id fnt (col:color)=
+class text nid fnt (col:color)=
 object(self)
-  val mutable graphic=new graphic_generic_object id
-
-  val mutable id=id
-  method set_id i=id<-i
+  inherit graphic_generic_object nid
+  val mutable graphic=new graphic_generic_object nid
 
 
   val mutable max_size=16
@@ -274,27 +272,27 @@ in
 	    cw:=(fst pos);
 	  ch:=!ch + (snd pos);
       done;
-      graphic#get_rect#set_size (!cw) (!ch);
+      rect#set_size (!cw) (!ch);
       
   val mutable color=col
   method get_color=color
   method set_color c=color<-c
 
-
-  method move x y=
-    graphic#move x y;
-(*    for i=0 to (List.length self#get_text)-1 do
+(*    graphic#move x y; *)
+(*
+    for i=0 to (List.length self#get_text)-1 do
       let ty=(graphic#get_rect#get_y) in
 	graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
 	graphic#move (graphic#get_rect#get_x) (ty);
     done;
 *)
-  method get_rect=graphic#get_rect
+(*  method get_rect=graphic#get_rect *)
 
   method put()=
     for i=0 to (List.length self#get_text)-1 do
-	graphic#set_cur_tile i;
-	graphic#put();	
+      graphic#move (rect#get_x) (rect#get_y+(i*fnt#get_height));
+      graphic#set_cur_tile i;
+      graphic#put();	
 
     done;
 
@@ -312,10 +310,18 @@ class iface_text_edit_box rid bptile fnt color bw il=
     method private set_lines l=lines<-l
     method private get_lines=lines
 
-    val mutable text=new text "text_edit" fnt color
+    val mutable text=new text (rid^"/text_edit") fnt color
     val mutable te=new text_edit
    
     method private get_textedit=te
+
+    method get_data_text=te#get_text;
+
+    method set_data_text t=
+      if t="" then
+	te#set_text ""; 
+      super#set_data_text (t); 
+      text#set_text (data_text);
 
     method on_keypress e=
       (match (parse_key e.ebut) with
@@ -332,7 +338,6 @@ class iface_text_edit_box rid bptile fnt color bw il=
 
       self#set_data_text (te#get_text); 
 
-      text#set_text (data_text);
 
 
     initializer
@@ -352,12 +357,8 @@ class iface_text_edit_box rid bptile fnt color bw il=
       let rx=x-self#get_rect#get_x  in
 	click()
 
-
-
     val mutable cur_refresh=30
     val mutable cur_c=0
-
-    method get_data_text=te#get_text;
 
     method private auto_lines()=
       let l=List.length text#get_text in
@@ -426,6 +427,8 @@ class iface_password_edit rid bptile fnt color bw=
       for i=0 to String.length t - 1 do
 	tmp:=String.concat "" [!tmp;"*"];
       done;
-      data_text<- !tmp;
+      data_text<- t;
+      text#set_text (!tmp);
+
 
   end;;
