@@ -28,7 +28,8 @@ open Event_manager;;
 
 open Iface_object;;
 
-
+let string_eol=
+  (String.make 1 '\n')
 
 let text_split s=
   split_delim (regexp "[\n\t]+") s;;
@@ -86,8 +87,8 @@ class iface_label_static fnt color txt=
 	^string_of_int(match color with (r,v,b) -> v)
 	^string_of_int(match color with (r,v,b) -> b)
 	)
- 
-       (tile_text fnt#get_font txt color)
+
+	(fnt#create_text txt color)
 	  
 	)
 	0 0 as super
@@ -244,6 +245,7 @@ object(self)
   val mutable text=[""]
   method get_text=text
 
+
   method lines_size (l:int)=
     let si=ref 0 in
     let i=ref 0 in
@@ -273,45 +275,45 @@ object(self)
     ) text;
       !l
 
-  (* NEW cut_string *)
-  method private cut_string2 s=
-    let utf=new utf8 in
-      utf#set s;
-      let cp=ref 0 and
-	  lp=ref 0 and
-	  cs=ref 0 and
-	  cl=ref 0 and
-	  str=ref "" in
-	
-      let a=DynArray.create() in
-	while !cl<lines && !cp<utf#length do
-	  while !cs<max_size && !cp<utf#length do
-	    (
-	      str:= (utf#sub !lp (!cp- !lp));
-	      let (cw,ch)=fnt#sizeof_text (!str) in 
-		cs:=cw;
 
-(*
-		if (String.length !str)>0 && String.get !str (utf#byte_get (!cp-1))='\n' then cs:=max_size;
-*)
-		cp:= !cp+1;
-	    )
-	  done;
-	  str:= (utf#sub !lp (!cp- !lp));
-	  DynArray.add a !str;
-	  cl:= !cl+1;
-	  lp:= !cp;
-	  cs:=0;
-	done;
-	DynArray.to_list a 
-(*	let sa=DynArray.create() in
-	  DynArray.iter 
-	    (
-	      fun s->
-		DynArray.add sa (split_delim (regexp "[\n]+") s);
-	    ) a;
-	  List.concat (DynArray.to_list sa)
-*)
+
+  (* NEW cut_string *)
+  method private cut_string2 is=
+    let nlist=(split_delim (regexp "[\n]+") is) in
+
+    let a=DynArray.create() in      
+    let cl=ref 0 in
+      List.iter (
+	fun s->
+	  let utf=new utf8 in
+	    utf#set s;
+	    let cp=ref 0 and
+		lp=ref 0 and
+		cs=ref 0 and
+
+		str=ref "" in
+	      
+	      
+	      while !cl<lines && !cp<utf#length do
+		while !cs<max_size && !cp<utf#length do
+		  (
+		    str:= (utf#sub !lp (!cp- !lp));
+		    let (cw,ch)=fnt#sizeof_text (!str) in 
+		      cs:=cw;
+		      cp:= !cp+1;
+		  )
+		done;
+		str:= (utf#sub !lp (!cp- !lp));
+		DynArray.add a !str;
+		cl:= !cl+1;
+		lp:= !cp;
+		cs:=0;
+	      done;
+
+      ) nlist;
+
+      DynArray.to_list a 
+	
   (* OLD cut_string *)	  
   method private cut_string s=
     (*    text<-split_delim (regexp "[\n]+") s; *)
@@ -364,11 +366,11 @@ object(self)
 
 end;;
 
-class iface_text_box rid bptile fnt color bw il=
+class iface_text_box rid bpgraph fnt color bw il=
 object(self)
     inherit iface_object bw (fnt#get_height) as super
 
-    val mutable bg=new iface_rgraphic_object rid bptile
+    val mutable bg=new iface_pgraphic_object bpgraph
     val mutable text=new text (rid^"/text_box") fnt color
 
     initializer
@@ -450,8 +452,13 @@ class iface_text_edit_box rid bptile fnt color bw il=
       | KeyRight -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
       | _ -> 
 (*	  if UTF8.length te#get_text< lines*text#get_max_size then *)
-	    te#parse (parse_key e.ebut) (parse_unicode e.ey));
-
+(*	  text#set_text te#get_text;
+	  if UTF8.length te#get_text<= text#lines_size text#get_lines then *)
+	    te#parse (parse_key e.ebut) (parse_unicode e.ey);
+(*	  text#set_text ""; *)
+      );
+  
+      
       self#set_data_text (te#get_text); 
 
 
@@ -467,6 +474,11 @@ class iface_text_edit_box rid bptile fnt color bw il=
 	    let cline=text#line_of_pos te#get_cur_pos in
 	    let mline=(te#get_cur_pos - (text#lines_size cline)) in
 	    let tt=
+(*	      print_string ("curs:"
+			    ^string_of_int te#get_cur_pos^","
+			    ^string_of_int (text#lines_size (text#get_lines)));
+	      print_newline();
+*)
 	      if te#get_cur_pos<=(text#lines_size (text#get_lines)) then
 	      (try
 	      let utf=new utf8 in

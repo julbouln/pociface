@@ -299,6 +299,7 @@ class interface_NEW=
 	p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
 	p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
 	p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
+	p#parser_add "iface_text_box" (fun()->new xml_iface_text_box_parser);
 	p#parser_add "iface_text_edit_box" (fun()->new xml_iface_text_edit_box_parser);
 	p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser);
 	p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser);

@@ -122,12 +122,12 @@ end;;
 
 (* NEW *)
 
-class iface_rbutton rid nptile cptile=
+class iface_pbutton rid nptile cptile=
 object
   inherit iface_object 0 0 as super
 
-  val mutable ngr=new iface_rgraphic_object (rid^":normal") nptile
-  val mutable cgr=new iface_rgraphic_object (rid^":clicked") cptile
+  val mutable ngr=new iface_pgraphic_object nptile
+  val mutable cgr=new iface_pgraphic_object cptile
 
   val mutable is_clicked=false
   val mutable is_mouseover=false
@@ -174,9 +174,9 @@ end;;
 
 
 (** button with label widget *)
-class iface_rbutton_with_label rid nptile cptile fnt tcol txt=
+class iface_pbutton_with_label rid nptile cptile fnt tcol txt=
 object(self)
-    inherit iface_rbutton rid nptile cptile as super
+    inherit iface_pbutton rid nptile cptile as super
 
     val mutable label=
       (new iface_label_static fnt tcol txt)

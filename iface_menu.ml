@@ -344,7 +344,7 @@ object(self)
   val mutable empty=false
 
   val mutable tobj=(fst mt)
-  val mutable fond=new iface_rgraphic_object (rid) ptile
+  val mutable fond=new iface_pgraphic_object (ptile())
   val mutable menu=new iface_container ([||])
 
   val mutable vrect=new rectangle 0 0 0 0
@@ -527,7 +527,7 @@ class iface_menubar rid ptile c=
 object(self)
   inherit iface_object 0 0 as super
 
-  val mutable fond=new iface_rgraphic_object (rid) ptile
+  val mutable fond=new iface_pgraphic_object (ptile())
 
   val mutable menus=new iface_container [||]
 

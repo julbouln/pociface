@@ -155,28 +155,23 @@ class iface_graphic_colored_object file w h un uc=
   end;;
 
 
-(** special graphic resize with 9 tiles *)
-class iface_rgraphic_object rid ptile=
+(** special graphic pattern resize with 9 tiles *)
+class graphic_pattern pid ptile=
 object(self)
-  inherit iface_object 0 0 as super
+  inherit graphic_generic_object pid as super
 
+  val mutable gr=new graphic_generic_object pid
 
-  val mutable gr=new graphic_generic_object rid
   val mutable crect=new rectangle 0 0 0 0
+  method get_crect=crect
 
-  method resize nw nh=
-    rect#set_size nw nh;
-
-  method border_size=
-    ((crect#get_w),(crect#get_h))
 
   method private init()=
-(*    let gen=new graphic_real_object (rid^"/gen") (ptile) in *)
     let cw=tile_get_w ptile and
 	ch=tile_get_h ptile in
       crect#set_size (cw/3) (ch/3);
 
-    gr<-new graphic_from_func rid (
+    gr<-new graphic_from_func pid (
       fun()->
 	let ta=tile_split ptile crect#get_w crect#get_h in
 	  for i=0 to (Array.length (ta))-1 do
@@ -199,26 +194,55 @@ object(self)
 *)
 
   method put()=
-    if self#is_showing then (
-      let cw=rect#get_w/crect#get_w and
-	  ch=rect#get_h/crect#get_h in    
-	for i=0 to cw do
-	  for j=0 to ch do
-	    (match (i,j) with
-	       | (0,0) -> gr#set_cur_tile 0
-	       | (0,ih) when ih=ch ->gr#set_cur_tile 2
-	       | (0,_) ->gr#set_cur_tile 1
-	       | (iw,0) when iw=cw -> gr#set_cur_tile 6
-	       | (_,0) ->gr#set_cur_tile 3
-	       | (iw,ih) when iw=cw && ih=ch -> gr#set_cur_tile 8
-	       | (_,ih) when ih=ch ->gr#set_cur_tile 5
-	       | (iw,_) when iw=cw ->gr#set_cur_tile 7
-	       | (_,_) ->gr#set_cur_tile 4
-	    );
-	    gr#move (rect#get_x + (i*crect#get_w)) (rect#get_y + (j*crect#get_h));
-	    gr#put();
+    let cw=rect#get_w/crect#get_w and
+	ch=rect#get_h/crect#get_h in    
+      for i=0 to cw do
+	for j=0 to ch do
+	  (match (i,j) with
+	     | (0,0) -> gr#set_cur_tile 0
+	     | (0,ih) when ih=ch ->gr#set_cur_tile 2
+	     | (0,_) ->gr#set_cur_tile 1
+	     | (iw,0) when iw=cw -> gr#set_cur_tile 6
+	     | (_,0) ->gr#set_cur_tile 3
+	     | (iw,ih) when iw=cw && ih=ch -> gr#set_cur_tile 8
+	     | (_,ih) when ih=ch ->gr#set_cur_tile 5
+	     | (iw,_) when iw=cw ->gr#set_cur_tile 7
+	     | (_,_) ->gr#set_cur_tile 4
+	  );
+	  gr#move (rect#get_x + (i*crect#get_w)) (rect#get_y + (j*crect#get_h));
+	  gr#put();
 	  done
-	done
+      done
+
+end;; 
+
+class graphic_pattern_file pfile=
+object
+  inherit graphic_pattern pfile (tile_load pfile)
+end;;
+
+
+(** patterned iface object*)
+class iface_pgraphic_object (graph:graphic_pattern)=
+object(self)
+  inherit iface_object 0 0 as super
+
+  val mutable gr=graph
+
+  method border_size=
+    ((gr#get_crect#get_w),(gr#get_crect#get_h))
+
+  method move x y=
+    super#move x y;
+    gr#move x y;
+
+  method resize nw nh=
+    gr#get_rect#set_size nw nh;
+    rect#set_size nw nh;
+
+  method put()=
+    if self#is_showing then (
+      gr#put();
     )
 end;; 
 
