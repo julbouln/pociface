@@ -19,7 +19,9 @@
 open Value_xml;;
 open Value_val;;
 open Value_lua;;
+open Value_xmlparser;;
 
+open Core_xml;;
 open Core_main;;
 open Core_medias;;
 

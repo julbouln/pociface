@@ -1,4 +1,5 @@
 open Value_xml;;
+open Value_xmlparser;;
 
 open Core_medias;;
 open Core_graphic;;

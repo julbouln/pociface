@@ -1,5 +1,7 @@
 open Value_xml;;
+open Value_xmlparser;;
 
+open Core_xml;;
 open Core_font;;
 open Core_medias;;
 open Core_graphic;;
