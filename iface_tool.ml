@@ -16,11 +16,12 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
-open Low;;
+
 
 open Drawing;;
 open Medias;;
 open Olua;;
+open Binding;;
 
 open Iface_object;;
 open Iface_text;;
@@ -59,10 +60,10 @@ object(self)
 end;;
 
 (** icon tool graphic with label *)
-class ['a] iface_tool_graphic_with_label (r:'a) fnt label gr=
+class ['a] iface_tool_graphic_with_label (r:'a) fnt_t label gr=
 object(self)
   inherit ['a] iface_tool_graphic r gr as super
-  val mutable lab=new iface_label_static fnt (0,0,0) label
+  val mutable lab=new iface_label_static fnt_t (0,0,0) label
 
   method private reset_size()=
     rect#set_size (gr#get_rect#get_w+lab#get_rect#get_w) (gr#get_rect#get_h);
@@ -91,15 +92,20 @@ end;;
 (** icon tool object *)
 class ['a] iface_tool_icon (r:'a) f w h iw ih=
 object(self)
-  inherit ['a] iface_tool_graphic r (new graphic_real_resized_object (f^":icon") ((float_of_int w)/.(float_of_int iw)) ((float_of_int h)/.(float_of_int ih)) (tiles_load f iw ih).(0)) as super
+  inherit ['a] iface_tool_graphic r 
+(*(new graphic_real_resized_object (f^":icon") ((float_of_int w)/.(float_of_int iw)) ((float_of_int h)/.(float_of_int ih)) 
+(tiles_load f iw ih).(0)) 
+*)
+(new graphic_object_resized_from_file f 0 w h iw ih)
+as super
 end;;
 
 
 (** icon tool icon with label *)
-class ['a] iface_tool_icon_with_label (r:'a) fnt label f w h iw ih=
+class ['a] iface_tool_icon_with_label (r:'a) fnt_t label f w h iw ih=
 object(self)
   inherit ['a] iface_tool_icon (r) f w h iw ih as super
-    val mutable lab=new iface_label_static fnt (0,0,0) label
+    val mutable lab=new iface_label_static fnt_t (0,0,0) label
 
   method private reset_size()=
     rect#set_size (graphic#get_rect#get_w+lab#get_rect#get_w) (graphic#get_rect#get_h);
@@ -128,20 +134,32 @@ end;;
 class virtual ['a] iface_toolbox (iv:'a) (c:('a) iface_tool array) =
 object(self)
   inherit iface_vcontainer c as super
-  val mutable selected=new graphic_real_object "selected" (tile_rect 32 32 (255,0,0))
+  val mutable selected=
+    new graphic_from_drawing "selected" (
+      fun()->
+	let dr=drawing_vault#new_drawing() in
+	  dr#exec_op_create "rect" 
+	    [
+	      DrawValSize(32,32);
+	      DrawValColor(255,0,0)
+	    ];
+	[|dr|]
+    )
+    (*new graphic_real_object "selected" (tile_rect 32 32 (255,0,0))*)
 
   val mutable show_selected=false
-  method move_selected x y=selected#move x y
+  method move_selected x y=selected#move x y 
 
   val mutable current_val=iv 
   method get_current=current_val
   method set_current i=
     let o=c.(i) in
       current_val<-o#get_rval;
-      self#move_selected o#get_rect#get_x o#get_rect#get_y;
+      self#move_selected o#get_rect#get_x o#get_rect#get_y; 
       show_selected<-true;
-  initializer 
+(*  initializer 
     selected#move (-32) (-32);
+*)
 (*    self#reset_size(); *)
 (*    self#set_symmetric_size true;
     self#set_fixed_size false;
@@ -151,6 +169,7 @@ object(self)
   method move x y=
     let selrx=selected#get_rect#get_x - rect#get_x and
 	selry=selected#get_rect#get_y - rect#get_y in
+
       selected#move (x+selrx) (y+selry);
       vrect#set_position x y;
       super#move x y;

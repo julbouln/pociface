@@ -1,4 +1,5 @@
-open Low;;
+open Generic;;
+open Font;;
 open Medias;;
 open Oxml;;
 
@@ -32,7 +33,7 @@ type iface_prop=
   | IPropGraphic of (unit-> graphic_cached_object)
   | IPropPattern of (unit -> graphic_pattern)
   | IPropColor of color
-  | IPropFont of font_object
+  | IPropFont of (font_t)
   | IPropBool of bool
   | IPropNil;;
 

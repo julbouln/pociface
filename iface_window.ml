@@ -27,12 +27,12 @@ open Iface_container;;
 (** Interface windows *)
 
 (** generic window object *)
-class iface_window (rid:string) (tipa) (tipa_min) (bgpa) fnt tcol (clgr) (mingr) (maxgr) ttxt (c:iface_object)=
+class iface_window (rid:string) (tipa) (tipa_min) (bgpa) fnt_t tcol (clgr) (mingr) (maxgr) ttxt (c:iface_object)=
 object(self)
   inherit iface_object 0 0 as super
   val mutable content=c
 
-  val mutable tilab=new iface_label_static fnt tcol ttxt 
+  val mutable tilab=new iface_label_static fnt_t tcol ttxt 
   val mutable ticl=new iface_graphic_button clgr clgr#get_rect#get_w clgr#get_rect#get_h
   val mutable timin=new iface_graphic_button mingr mingr#get_rect#get_w mingr#get_rect#get_h
   val mutable timax=new iface_graphic_button maxgr maxgr#get_rect#get_w maxgr#get_rect#get_h

@@ -17,15 +17,15 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
+open Drawing;;
 open Str;;
 
-open Low;;
-
+open Generic;;
 open Rect;;
 open Video;;
 open Medias;;
-open Event_manager;;
-
+open Event;;
+open Binding;;
 open Iface_object;;
 
 
@@ -39,11 +39,12 @@ let text_split s=
 
 
 (** label_static object *)
-class iface_label_static fnt color txt=
+class iface_label_static fnt_t color txt=
   object
     inherit iface_graphic_object  
     (
-      new graphic_real_object 
+      new graphic_object_text fnt_t txt color
+(*      new graphic_real_object 
 
        ("label/static/"^txt^":"^(string_of_int fnt#get_size)^":"
 	^string_of_int(match color with (r,v,b) -> r)
@@ -52,7 +53,7 @@ class iface_label_static fnt color txt=
 	)
 
 	(fnt#create_text txt color)
-	  
+*)	  
 	)
 	0 0 as super
 
@@ -60,7 +61,7 @@ class iface_label_static fnt color txt=
   end;;
 
 (** label_dynamic object *)
-class iface_label_dynamic fnt color=
+(*class iface_label_dynamic fnt color=
   object (self)
     inherit iface_object 0 0 as super
 
@@ -72,7 +73,7 @@ class iface_label_dynamic fnt color=
 	tile_free tmp      
 )
   end;;
-
+*)
 
 (** utf8 *)
 class utf8=
@@ -154,11 +155,13 @@ end;;
 
 (* FIXME : go in poccore *)
 (** graphic text object *)
-class graphic_text nid fnt (col:color)=
+class graphic_text nid fnt_t (col:color)=
 object(self)
-  inherit graphic_generic_object nid
-  val mutable graphic=new graphic_generic_object nid
-
+  inherit graphic_cached_object nid
+(*  val mutable graphic=new graphic_cached_object nid *)
+  val mutable graphic=new graphic_object_text fnt_t ("empty") col;
+  val mutable fnt=(font_vault#get_cache (get_font_id fnt_t)).(0)
+ 
   val mutable color=col
   method get_color=color
   method set_color c=color<-c
@@ -268,11 +271,12 @@ object(self)
     text<-self#cut_string2 t;
 
     graphic<-
-      new graphic_dyn_object (id^"/text") (List.length self#get_text)
+      new graphic_object_text fnt_t (List.nth self#get_text 0) self#get_color;
+(*      new graphic_dyn_object (id^"/text") (List.length self#get_text)
       (function k-> (
 	 fnt#create_text (List.nth self#get_text k) self#get_color
        ));
-
+*)
     let cw=ref 0 and
       ch=ref 0 in
       for i=0 to (List.length (self#get_text))-1 do
@@ -287,7 +291,7 @@ object(self)
   method put()=
     for i=0 to (List.length self#get_text)-1 do
       graphic#move (rect#get_x) (rect#get_y+(i*fnt#get_height));
-      graphic#set_cur_tile i;
+      graphic#set_cur_drawing i;
       graphic#put();	
 
     done;
@@ -295,12 +299,13 @@ object(self)
 end;;
 
 (** text box *)
-class iface_text_box rid bpgraph fnt color bw il=
+class iface_text_box rid bpgraph fnt_t color bw il=
 object(self)
-    inherit iface_object bw (fnt#get_height) as super
+    inherit iface_object bw 0 as super
 
     val mutable bg=new iface_pgraphic_object bpgraph
-    val mutable text=new graphic_text (rid^"/text_box") fnt color
+    val mutable text=new graphic_text (rid^"/text_box") fnt_t color
+    val mutable fnt=(font_vault#get_cache (get_font_id fnt_t)).(0)
 
     initializer
       text#set_lines il;
@@ -357,11 +362,25 @@ object(self)
 end;;
 
 (** text edit box *)
-class iface_text_edit_box rid bptile fnt color bw il=
+class iface_text_edit_box rid bptile fnt_t color bw il=
   object (self)
-    inherit iface_text_box rid bptile fnt color bw il as super
+    inherit iface_text_box rid bptile fnt_t color bw il as super
     val mutable te=new text_edit
-   
+    val mutable cursor=new graphic_cached_object "cursor"
+
+    initializer
+      cursor<-new graphic_from_drawing "cursor" (
+	fun()->
+	  let dr=drawing_vault#new_drawing() in
+	    dr#exec_op_create "rect" 
+	      [
+		DrawValSize(1,(fnt#get_height));
+		DrawValColor color
+	    ];
+	    [|dr|]
+      )   
+	
+
     method private get_textedit=te
 
     method get_data_text=te#get_text;
@@ -371,8 +390,10 @@ class iface_text_edit_box rid bptile fnt color bw il=
 	te#set_text ""; 
       super#set_data_text (t);       
 
-    method on_keypress e=
-      (match (parse_key e.ebut) with
+    method on_keypress (k,utfk)=
+      te#parse k utfk;
+
+(*      (match (parse_key e.ebut) with
       | KeyShift -> ()
       | _ -> 
 (*	  if UTF8.length te#get_text< lines*text#get_max_size then *)
@@ -382,7 +403,7 @@ class iface_text_edit_box rid bptile fnt color bw il=
 (*	  text#set_text ""; *)
       );
   
-      
+*)    
       self#set_data_text (te#get_text); 
 
 
@@ -394,7 +415,7 @@ class iface_text_edit_box rid bptile fnt color bw il=
       if showing=true then
 	if focused then (
 	  if cur_c>cur_refresh/2 then (
-	    let cu=tile_rect 1 (fnt#get_height) color in
+(*	    let cu=tile_rect 1 (fnt#get_height) color in *)
 	    let cline=text#line_of_pos te#get_cur_pos in
 	    let mline=(te#get_cur_pos - (text#lines_size cline)) in
 	    let tt=
@@ -413,9 +434,11 @@ class iface_text_edit_box rid bptile fnt color bw il=
 	       in
 
 	    let (cw,ch)=fnt#sizeof_text tt in
-	    let (brw,brh)=bg#border_size in
-	      tile_put cu (rect#get_x + cw +(brw)) (rect#get_y-2+(brh) + ch*(cline));
-	      tile_free cu;
+	    let (brw,brh)=bg#border_size in 
+	      cursor#move (rect#get_x + cw +(brw)) (rect#get_y-2+(brh) + ch*(cline));
+	      cursor#put();
+(*	      tile_put cu (rect#get_x + cw +(brw)) (rect#get_y-2+(brh) + ch*(cline));
+	      tile_free cu;*)
 	  );
 	  if cur_c=cur_refresh then cur_c<-0
 	  else cur_c<-cur_c+1
@@ -424,15 +447,15 @@ class iface_text_edit_box rid bptile fnt color bw il=
   end;;
 
 (** text edit object 1 line *)
-class iface_text_edit rid bptile fnt color bw=
+class iface_text_edit rid bptile fnt_t color bw=
 object
-  inherit iface_text_edit_box rid bptile fnt color bw 1 as super
+  inherit iface_text_edit_box rid bptile fnt_t color bw 1 as super
 end
 
 (** password edit object *)
-class iface_password_edit rid bptile fnt color bw=
+class iface_password_edit rid bptile fnt_t color bw=
   object (self)
-    inherit iface_text_edit rid bptile fnt color bw as super
+    inherit iface_text_edit rid bptile fnt_t color bw as super
       
     method set_data_text t=
       let tmp=ref "" in
@@ -443,48 +466,6 @@ class iface_password_edit rid bptile fnt color bw=
       text#set_text (!tmp);
 
 
-  end;;
-
-
-(** {2 DEPRECATED : for BFR compatibility } *)
-
-(** text object *)
-class iface_text fnt color txt_s=
-  object
-    inherit iface_graphic_object (
-      let txt=text_split txt_s in
-      let cs=match color with 
-      |(x,y,z)->(string_of_int x)^(string_of_int y)^(string_of_int z) in
-
-      new graphic_dyn_object ("text:"^(List.nth txt 0)^cs) (List.length txt)
-	(function k-> (
-	  fnt#create_text (List.nth txt k) color
-	 ))	 
-     ) 0 0 as super
-	
-    val txt=text_split txt_s
-
-    initializer
-      let cw=ref 0 and
-	  ch=ref 0 in
-      for i=0 to (List.length txt)-1 do
-	let pos=fnt#sizeof_text (List.nth txt i) in
-	if !cw<(fst pos) then
-	  cw:=(fst pos);
-	ch:=!ch + (snd pos);
-      done;
-      graphic#get_rect#set_size (!cw) (!ch);
-
-    method put()=
-      if showing==true then (
-	for i=0 to (List.length txt)-1 do
-	  let ty=(graphic#get_rect#get_y) in
-	  graphic#set_cur_tile i;
-	  graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
-	  graphic#put();	
-	  graphic#move (graphic#get_rect#get_x) (ty);
-	done;
-       )
   end;;
 
 

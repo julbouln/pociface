@@ -13,6 +13,57 @@ open Iface_container;;
 
 (** DEPRECATED : for BFR compatibility, ignore it! *)
 
+(** graphic object from file with var color *)
+class iface_graphic_colored_object file w h un uc=
+  object (self)
+    inherit iface_graphic_object (new graphic_object_colored w h file false false un uc) w h as super
+
+  end;;
+
+(** {2 DEPRECATED : for BFR compatibility } *)
+
+(** text object *)
+class iface_text fnt color txt_s=
+  object
+    inherit iface_graphic_object (
+      let txt=text_split txt_s in
+      let cs=match color with 
+      |(x,y,z)->(string_of_int x)^(string_of_int y)^(string_of_int z) in
+
+      new graphic_dyn_object ("text:"^(List.nth txt 0)^cs) (List.length txt)
+	(function k-> (
+	  fnt#create_text (List.nth txt k) color
+	 ))	 
+     ) 0 0 as super
+	
+    val txt=text_split txt_s
+
+    initializer
+      let cw=ref 0 and
+	  ch=ref 0 in
+      for i=0 to (List.length txt)-1 do
+	let pos=fnt#sizeof_text (List.nth txt i) in
+	if !cw<(fst pos) then
+	  cw:=(fst pos);
+	ch:=!ch + (snd pos);
+      done;
+      graphic#get_rect#set_size (!cw) (!ch);
+
+    method put()=
+      if showing==true then (
+	for i=0 to (List.length txt)-1 do
+	  let ty=(graphic#get_rect#get_y) in
+	  graphic#set_cur_tile i;
+	  graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
+	  graphic#put();	
+	  graphic#move (graphic#get_rect#get_x) (ty);
+	done;
+       )
+  end;;
+
+
+
+
 (** Buttons *)
 
 (** sample button object *)

@@ -1,9 +1,7 @@
-open Low;;
-
 open Medias;;
-
+open Font;;
 open Drawing;;
-
+open Binding;;
 open Oxml;;
 
 open Iface_object;;
@@ -34,7 +32,7 @@ end;;
 
 (** default pattern *)
 let default_pattern bgcol=
-  let dr=new poclow_drawing_object in
+  let dr=drawing_vault#new_drawing() in
     dr#create 24 24 bgcol;
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
@@ -160,7 +158,7 @@ let default_pattern_clicked bgcol=
     tile_line bg (1,22) (22,22) lcol;
     bg;;
 *)
-
+(*
 let default_graph w h bgcol bordcol=
   let bg=(tile_box w h bgcol) in
   let fg=(tile_rect w h bordcol) in
@@ -168,7 +166,7 @@ let default_graph w h bgcol bordcol=
     tile_put_to fg bg 0 0;
     tile_free fg;
     bg;;
-
+*)
 (** default style *)
 let get_default_style n=
 
@@ -177,13 +175,13 @@ let get_default_style n=
        | "iface_text_edit" ->props#from_list
 	   [
 	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" "default_pattern_text:simple"));
-	     ("font",IPropFont (new font_object "none" 8));
+	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_text_edit_box" ->props#from_list
 	   [
 	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" "default_pattern_text:simple"));
-	     ("font",IPropFont (new font_object "none" 8));
+	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_hcontainer" ->props#from_list
@@ -214,7 +212,7 @@ let get_default_style n=
 	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
 	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
 	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
-	     ("font",IPropFont (new font_object "none" 8));
+	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0));
 (*	     ("close_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
 	     ("minimize_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
@@ -226,7 +224,7 @@ let get_default_style n=
 	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
 	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
 	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
-	     ("font",IPropFont (new font_object "none" 8));
+	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ];
     );

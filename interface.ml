@@ -21,12 +21,12 @@ open Str;;
 
 open Generic;;
 open Rect;;
-open Low;;
 open Video;;
 open Medias;;
 open Music;;
-open Event_manager;;
+open Event;;
 open Drawing;;
+open Binding;;
 
 open Otype;;
 open Olua;;
@@ -335,10 +335,12 @@ class interface=
 	if focus<> "none" then (
 	  let fo=self#iface_get_object focus in
 	    if fo#is_showing then (
-	      let t=tile_rect (fo#get_rect#get_w+2) (fo#get_rect#get_h+2) (200,200,200) in
+(*	      let t=tile_rect (fo#get_rect#get_w+2) (fo#get_rect#get_h+2) (200,200,200) in
 		tile_put t (fo#get_rect#get_x-1) (fo#get_rect#get_y-1);
 		tile_free t;
+*)
 	    )
+
 	)
   end;;
 

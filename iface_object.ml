@@ -17,14 +17,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-open Low;;
 
 open Rect;;
 open Generic;;
 open Medias;;
-open Vfs;;
 
-open Event_manager;;
+open Event;;
 
 open Olua;;
 
@@ -58,8 +56,8 @@ object(self)
     method set_focused f=focused<-f
 
 
-    method on_keypress (e:event)=()
-    method on_keyrelease (e:event)=()
+    method on_keypress (e:(key_type*key_type))=()
+    method on_keyrelease (e:(key_type*key_type))=()
 	
     method on_click (x : int) (y : int)=click()
     method on_release (x : int) (y : int)=release()
@@ -158,12 +156,6 @@ class iface_graphic_file_object file w h=
 
   end;;
 
-(** graphic object from file with var color *)
-class iface_graphic_colored_object file w h un uc=
-  object (self)
-    inherit iface_graphic_object (new graphic_object_colored w h file false false un uc) w h as super
-
-  end;;
 
 
 (** patterned iface object*)

@@ -17,33 +17,33 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-open Low;;
+
 open Video;;
-open Event_manager;;
+open Event;;
 open Medias;;
 open Interface;;
 
 (** Interface event parser *)
 
 let ev_iface_parser a iface curs=
-  (match a.etype with
-     | "mouse" ->
-	 curs#move a.ex a.ey;
-	 (match a.eval with
-	    | "motion" -> 
-		iface#mouseover a.ex a.ey;
-	    | "released" -> 
-		iface#release a.ex a.ey; 
+  (match a with
+     | EventMouse em ->
+	 (match em with
+	    | MouseMotion(x,y) -> 
+		iface#mouseover x y;
+		curs#move x y;
+	    | MouseRelease(x,y,but) -> 
+		iface#release x y; 
 		curs#set_state "normal";
-	    | "pressed" -> 
-		iface#click a.ex a.ey; 
+	    | MouseClick(x,y,but) -> 
+		iface#click x y; 
 		curs#set_state "clicked";
 	    | _ -> ()
 	 )
-     | "keyboard" ->
-	 (match a.eval with
-	    | "pressed" -> 
-		iface#keypress a
+     | EventKeyboard ek->
+	 (match ek with
+	    | KeyboardPress (k,uk)-> 
+		iface#keypress (k,uk)
 	    | _ -> ()
 	 )
      | _ -> ()

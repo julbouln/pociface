@@ -17,13 +17,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-open Low;;
-
 open Video;;
 open Rect;;
 open Medias;;
 
-open Event_manager;;
+open Event;;
 
 open Iface_object;;
 open Iface_text;;
@@ -31,7 +29,7 @@ open Iface_button;;
 
 (** Interface misc objects (some experiment)*)
 
-
+(*
 (** dialog object *)
 class iface_dialog w h bg fnt text (bl:(string*iface_object) list)  (el:(string*iface_object*iface_object) list)=
 object(self)
@@ -126,4 +124,4 @@ object(self)
 
 
 end;;
-
+*)

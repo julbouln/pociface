@@ -17,12 +17,10 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-open Low;;
-
 open Rect;;
 open Medias;;
 
-open Event_manager;;
+open Event;;
 
 open Iface_object;;
 open Iface_text;;
@@ -42,12 +40,12 @@ class iface_graphic_button gr w h=
 
     method on_click x y=
       is_clicked<-true;
-      graphic#set_cur_tile 1;
+      graphic#set_cur_drawing 1;
       super#on_click x y
 
     method on_release x y=
       is_clicked<-false;
-      graphic#set_cur_tile 0;
+      graphic#set_cur_drawing 0;
       super#on_release x y
   end;;
 
@@ -102,12 +100,12 @@ end;;
 
 
 (** button with label and pattern *)
-class iface_pbutton_with_label rid npattern cpattern fnt tcol txt=
+class iface_pbutton_with_label rid npattern cpattern fnt_t tcol txt=
 object(self)
     inherit iface_pbutton rid npattern cpattern as super
 
     val mutable label=
-      (new iface_label_static fnt tcol txt)
+      (new iface_label_static fnt_t tcol txt)
 	
     method private init_size()=
       let (bw,bh)=ngr#border_size in
