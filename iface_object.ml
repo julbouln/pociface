@@ -20,6 +20,7 @@
 open Low;;
 
 open Rect;;
+open Generic;;
 open Medias;;
 open Vfs;;
 
@@ -28,23 +29,16 @@ open Event_manager;;
 (** parent widget *)
 class iface_object w h=
 object(self)
-    inherit canvas_object
+  inherit canvas_object
 
-    val mutable id="none"
-    method set_id i=id<-i
-    method get_id=id
-
-    val mutable layer=0
-    method set_layer l=layer<-l
-    method get_layer=layer
+    val mutable embed=false
+    method set_embed e=embed<-e
+    method get_embed=embed
 
     val mutable data=0
     val mutable data1=0
     val mutable data_text=""
     val mutable showing=false
-
-    val mutable rect=new rectangle 0 0 w h
-      
 
     val mutable click=(function()->())
     val mutable release=(function()->())
@@ -203,3 +197,23 @@ object(self)
 end;; 
 
 
+(** graphic object widget *)
+class iface_graphic_object_NEW gr=
+  object (self)
+    inherit iface_object (gr#get_rect#get_w) (gr#get_rect#get_h) as super
+    val mutable graphic=gr
+
+    method move x y=
+      super#move x y;
+      graphic#move x y
+
+    method put()=
+      if showing==true then
+	graphic#put()
+  end;;
+
+
+class iface_icon icon w h=
+  object
+    inherit iface_graphic_file_object icon w h as super
+  end;;

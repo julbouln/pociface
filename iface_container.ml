@@ -48,10 +48,78 @@ class iface_container c=
       super#hide();
       self#foreach (let f obj=obj#hide() in f)
 
-(*    method put()=
+    method put()=
       super#put();
-      self#foreach (let f obj=obj#put() in f)
-*)
+      self#foreach (fun obj->
+		      if obj#get_embed then
+			obj#put()
+		   )
+
+    method on_click x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if x > obj#get_vrect#get_x 
+	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	      && y > obj#get_vrect#get_y 
+	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	    then (
+	      
+	      obj#on_click x y;
+	    ) 
+	  )
+      );
+      super#on_click x y;
+
+    method on_release x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if x > obj#get_vrect#get_x 
+	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	      && y > obj#get_vrect#get_y 
+	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	    then (
+	      
+	      obj#on_release x y;
+	    ) 
+	  )
+      );
+      super#on_release x y;
+
+    method on_mouseover x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if x > obj#get_vrect#get_x 
+	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	      && y > obj#get_vrect#get_y 
+	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	    then (
+	      
+	      obj#on_mouseover x y;
+	    ) else obj#on_mouseout x y;
+	  )
+      );
+      super#on_mouseover x y;
+
+
+    method on_mouseout x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if x > obj#get_vrect#get_x 
+	      && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	      && y > obj#get_vrect#get_y 
+	      && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	    then (
+	      
+	      obj#on_mouseout x y;
+	    ) 
+	  )
+      );
+      super#on_mouseover x y;
+
   end;;
 
 
@@ -92,6 +160,8 @@ class iface_vcontainer c=
 	fun i obj->
 	  obj#move x (y+ (obj#get_rect#get_h*i))
       )
+
+
   end;;
 
 (** vertical container widget *)

@@ -369,12 +369,6 @@ object(self)
     tobj#put();
     menu#put();
 
-    self#foreach_submenu (
-      fun sm->
-	sm#put();
-    );
-
-
 
 
   method private pos_position x y=
@@ -410,6 +404,7 @@ object(self)
 		      (match v with
 			 | Menu (o,tl)->
 			     let sm=new iface_menu (rid^":"^string_of_int !i) ptile MenuRight (o,tl) in
+			       sm#set_embed true;
 			       DynArray.add a (sm:>iface_object);
 			       DynArray.add submenus sm;
 			 | MenuEntry o ->DynArray.add a o
@@ -421,8 +416,6 @@ object(self)
     );
 
     self#init_size();
-
-
 
   method init_size()=
     menu#reset_size();
@@ -452,42 +445,17 @@ object(self)
     menu#hide();
 
   method on_mouseover x y=
-    self#foreach_submenu (
-      fun obj->
-	if x > obj#get_vrect#get_x 
-	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	  && y > obj#get_vrect#get_y 
-	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	then (
-	  obj#on_mouseover x y;
-	) else
-	  obj#on_mouseout x y
-    );
-
+    menu#on_mouseover x y;
     self#open_menu();
     self#reset_size();
 
-
-
-
   method on_mouseout x y=
-    self#foreach_submenu (
-      fun obj->
-	if x > obj#get_vrect#get_x 
-	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	  && y > obj#get_vrect#get_y 
-	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	then (
-	  obj#on_mouseout x y; 
-	) 
-    );
-
+    menu#on_mouseout x y;
     self#close_menu();
     self#reset_size();
 
-
-      
   method on_click x y=
+    menu#on_click x y;
     self#open_menu();
     self#reset_size();
 
@@ -527,6 +495,7 @@ object(self)
 		      (match v with
 			 | Menu (o,tl)->
 			     let me=new iface_menu (rid^":"^string_of_int !i) ptile MenuBottom (o,tl) in
+			       me#set_embed true;
 			       DynArray.add a (me:>iface_object);
 			       DynArray.add submenus me;
 			 | _ -> ()
@@ -561,11 +530,6 @@ object(self)
 
   method put()=
     fond#put();
-    self#foreach_submenu (
-      fun obj->
-	obj#put();
-    );
-    
     menus#put();
   
   method show()=
@@ -580,56 +544,19 @@ object(self)
 
 
   method on_mouseover x y=
-    self#foreach_submenu (
-      fun obj->
-	if x > obj#get_vrect#get_x 
-	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	  && y > obj#get_vrect#get_y 
-	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	then (
-	  obj#on_mouseover x y;
-	) else
-	  obj#on_mouseout x y
-    );
-
+    menus#on_mouseover x y;
     self#reset_size();
 
   method on_mouseout x y=
-    self#foreach_submenu (
-      fun obj->
-	if x > obj#get_vrect#get_x 
-	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	  && y > obj#get_vrect#get_y 
-	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	then (
-	  obj#on_mouseout x y; 
-	) 
-    );
- 
+    menus#on_mouseout x y;
     self#reset_size();
 
   method on_click x y=
-    self#foreach_submenu (
-      fun obj->
-	if x > obj#get_vrect#get_x 
-	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	  && y > obj#get_vrect#get_y 
-	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
-	then (
-	  obj#open_menu();
-	  obj#reset_size();
-	) 
-    );
-
+    menus#on_click x y;
     self#reset_size();
 
 
 end;;
-
-
-
-
-
 
 
 class ['a] iface_tool (r:'a) fnt label f w h=
@@ -640,19 +567,11 @@ object(self)
   val mutable rval=r
   method get_rval=rval
 
-  method get_rect=
-    self#reset_size();
-    rect
-
-  method get_vrect=
-    self#reset_size();
-    rect
-
-
-
   method private reset_size()=
     rect#set_size (32+lab#get_rect#get_w) (32);
 
+  initializer
+    self#reset_size();
 
   method show()=
     super#show();
@@ -672,8 +591,6 @@ object(self)
 end;;
 
 
-
-
 class virtual ['a] iface_toolbox (iv:'a) (c:('a) iface_tool array) =
 object(self)
   inherit iface_vcontainer c as super
@@ -684,14 +601,14 @@ object(self)
   val mutable current_val=iv 
   method get_current=current_val
   method set_current i=
-       let o=c.(i) in
-	 current_val<-o#get_rval;
-	 self#move_selected o#get_rect#get_x o#get_rect#get_y
+    let o=c.(i) in
+      current_val<-o#get_rval;
+      self#move_selected o#get_rect#get_x o#get_rect#get_y
+
   initializer 
     selected#move (-32) (-32);
     self#reset_size();
 
-  method get_vrect=rect
   method on_click x y=
     print_string "IFACE : toolbox click";print_newline();
     let t=ref (-1) in
@@ -710,12 +627,14 @@ object(self)
 
     super#on_click x y;
 
-	
-  method move x y=
-    super#move x y;
     
   method put()=
+
     super#put();
+    self#foreachi (
+      fun i o->
+	o#put()
+    );
     if self#is_showing then
       selected#put();
 

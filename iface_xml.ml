@@ -163,6 +163,21 @@ object(self)
       [(id,lua,ofun)]
 end;;
 
+(** iface password edit parser *)
+class xml_iface_password_edit_parser=
+object(self)
+  inherit xml_iface_object_parser as super
+ 
+  method get_val=
+    let ofun()=
+      let st=theme#get_style nm in
+      let o=	new iface_password_edit id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) in
+	super#init_object o;
+	o
+    in
+      [(id,lua,ofun)]
+end;;
+
 (** iface graphic object parser *)
 class xml_iface_graphic_object_parser=
 object(self)
@@ -433,6 +448,7 @@ let iface_from_xml f=
       p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
       p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
       p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser);
+      p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser);
       p#parser_add "iface_graphic_object" (fun()->new xml_iface_graphic_object_parser);
       p#parser_add "iface_vcontainer" (fun()->new xml_iface_vcontainer_parser p#get_iface#iface_get_object);
       p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser p#get_iface#iface_get_object);

@@ -185,6 +185,11 @@ object(self)
       let (bw,bh)=ngr#border_size in
       super#resize (label#get_rect#get_w+(bw*2)) (label#get_rect#get_h+(bh*2))
 
+    initializer
+      self#init_size();
+
+
+
     method show()=
       super#show();
       label#show();
@@ -199,7 +204,7 @@ object(self)
       label#move (x+bw) (y+bh);
 
     method put()=
-      self#init_size();
+
       super#put();
       if showing==true then 
 	(
