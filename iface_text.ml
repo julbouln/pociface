@@ -46,7 +46,7 @@ class iface_label_static fnt_t color txt=
   object
     inherit iface_graphic_object  
     (
-      new graphic_object_text "text" fnt_t [txt] color
+      new graphic_object_text fnt_t [txt] color
 (*      new graphic_real_object 
 
        ("label/static/"^txt^":"^(string_of_int fnt#get_size)^":"
@@ -144,7 +144,7 @@ object(self)
     inherit iface_object bw 0 as super
 
     val mutable bg=new iface_pgraphic_object bpgraph
-    val mutable text=new graphic_text "text_box" (rid^"/text_box") fnt_t color
+    val mutable text=new graphic_text (rid^"/text_box") fnt_t color
     val mutable fnt=(font_vault#get_cache_simple (get_font_id fnt_t))
 
     initializer
@@ -208,10 +208,10 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
   object (self)
     inherit iface_text_box rid bptile fnt_t color bw il as super
     val mutable te=new text_edit
-    val mutable cursor=new graphic_object "cursor"
+    val mutable cursor=new graphic_object
 
     initializer
-      cursor<-new graphic_from_drawing "cursor" "cursor" (
+      cursor<-new graphic_from_drawing "cursor" (
 	fun()->
 	  let dr=drawing_vault#new_drawing() in
 	    dr#exec_op_create_from_list "rect" 

@@ -20,6 +20,7 @@
 open Video;;
 
 open Oxml;;
+open Oval;;
 open Medias;;
 open Olua;;
 
@@ -51,6 +52,7 @@ object (self)
 
 (** object unique id *)
   val mutable id=""
+  method get_id=id
 (** object x position *)
   val mutable x=0
 (** object y position *)
@@ -103,7 +105,7 @@ object (self)
 	o	  
     in      
       (id,ofun)
-
+  
 end;;
 
 
@@ -602,6 +604,34 @@ end;;
 exception Xml_iface_parser_not_found of string;;
 
 (** iface parser *)
+(*
+class xml_iface_parser=
+object(self)
+  inherit [xml_iface_object_parser,iface_object] xml_parser_container "iface_object" (fun()->new xml_iface_object_parser) as super
+
+
+  val mutable theme=new iface_theme (Hashtbl.create 2)
+  method get_style s=theme#get_style s    
+
+  method parse_attr k v=
+    match k with
+      | "theme" -> theme<-iface_theme_from_xml v
+      | _ -> ()
+
+  method parse_child k v=
+    match k with
+      | "iface_object" -> let p=new xml_iface_object_parser in p#parse v;
+	  if self#parser_is p#get_type then
+	    let sp=(self#parser_get p#get_type)() in
+	      sp#set_theme theme;
+	      sp#parse v;
+	      DynArray.add objs sp#get_val
+      | _ ->()
+
+
+end;;
+*)
+
 class xml_iface_parser=
 object(self)
   inherit xml_parser
@@ -645,3 +675,4 @@ object(self)
     ) objs;
       
 end;;
+

@@ -98,7 +98,7 @@ object(self)
 (*(new graphic_real_resized_object (f^":icon") ((float_of_int w)/.(float_of_int iw)) ((float_of_int h)/.(float_of_int ih)) 
 (tiles_load f iw ih).(0)) 
 *)
-(new graphic_resized_from_file "icon" f 0 w h iw ih)
+(new graphic_resized_from_file f 0 w h iw ih)
 as super
 end;;
 
@@ -137,7 +137,7 @@ class virtual ['a] iface_toolbox (iv:'a) (c:('a) iface_tool array) =
 object(self)
   inherit iface_vcontainer c as super
   val mutable selected=
-    new graphic_from_drawing "selected" "selected" (
+    new graphic_from_drawing "selected" (
       fun()->
 	let dr=drawing_vault#new_drawing() in
 	  dr#exec_op_create_from_list "rect" 
@@ -223,7 +223,7 @@ object
   inherit [int] iface_tool_graphic i
 (*    (new font_object "medias/Vera.ttf" 16) (string_of_color c)  *)
 (*    (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c) *)
-    (new graphic_from_drawing "color" (re^":"^string_of_color c) 
+    (new graphic_from_drawing (re^":"^string_of_color c) 
        (fun()->
 	  let dr=drawing_vault#new_drawing() in
 	    dr#create w h c;

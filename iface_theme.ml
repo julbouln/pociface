@@ -169,7 +169,7 @@ let default_graph w h bgcol bordcol=
     bg;;
 *)
 let default_graph w h color=
-  new graphic_from_drawing "main" "default_rect" (
+  new graphic_from_drawing "default_rect" (
     fun()->
       let dr=drawing_vault#new_drawing() in
 	dr#exec_op_create_from_list "rect" 
@@ -188,13 +188,13 @@ let get_default_style n=
     (match n with
        | "iface_text_edit" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" "default_pattern_text:simple"));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default_pattern_text:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_text_edit_box" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default:text_edit" "default_pattern_text:simple"));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default_pattern_text:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
@@ -215,17 +215,17 @@ let get_default_style n=
      
        | "iface_menu" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" "default_pattern:simple")));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default_pattern:simple")));
 	   ]
        | "iface_menubar" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default" "default_pattern:simple")));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default_pattern:simple")));
 	   ]
        | "iface_window" ->props#from_list
 	   [
-	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
-	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
-	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
+	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern "default_pattern:simple"));
+	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern "default_pattern_clicked:simple"));
+	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_pattern_clicked:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0));
 	     ("close_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
@@ -235,9 +235,9 @@ let get_default_style n=
 	   ];
        | _ ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
-	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default" "default_pattern:simple"));
-	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default_pattern:simple"));
+	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default_pattern:simple"));
+	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_pattern_clicked:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ];

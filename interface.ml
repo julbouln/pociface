@@ -353,14 +353,14 @@ object(self)
   inherit stage curs as super
 
   val mutable iface=new interface
+  method get_iface=iface
 
   method on_load()=
     iface#init_from_xml file
 
   method on_loop()=
     iface#update();
-    curs#put();
-    video#flip();
+    super#on_loop();
 
   method ev_parser e=
     (match e with
