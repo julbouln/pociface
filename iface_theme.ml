@@ -167,6 +167,19 @@ let default_graph w h bgcol bordcol=
     tile_free fg;
     bg;;
 *)
+let default_graph w h color=
+  new graphic_from_drawing "default_rect" (
+    fun()->
+      let dr=drawing_vault#new_drawing() in
+	dr#exec_op_create "rect" 
+	  [
+	    DrawValSize(w,h);
+		DrawValColor color
+	  ];
+	[|dr|]
+  )   
+
+
 (** default style *)
 let get_default_style n=
 
@@ -214,10 +227,10 @@ let get_default_style n=
 	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_clicked" "default_pattern_clicked:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0));
-(*	     ("close_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
-	     ("minimize_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
-	     ("maximize_button",IPropGraphic  (fun()->new graphic_real_object "default_but" (default_graph 16 16 (128,128,128) (0,0,0))));
-*)
+	     ("close_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
+	     ("minimize_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
+	     ("maximize_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
+
 	   ];
        | _ ->props#from_list
 	   [

@@ -27,6 +27,7 @@ open Music;;
 open Event;;
 open Drawing;;
 open Binding;;
+open Stage;;
 
 open Otype;;
 open Olua;;
@@ -80,8 +81,7 @@ class interface=
 
     initializer 
       self#init_default_pattern();
-      self#init_lua()
-	
+      self#init_lua();
 
     val mutable iface_parser=new xml_iface_parser 
     method iface_add_xml_parser p f=iface_parser#parser_add p f
@@ -346,5 +346,43 @@ class interface=
 
 
 
+class iface_stage curs file=
+object(self)
+  inherit stage curs
 
+  val mutable iface=new interface
+
+  method on_load()=
+    iface#init_from_xml file
+
+  method on_loop()=
+    iface#update();
+    curs#put();
+    video#flip();
+
+  method ev_parser e=
+    (match e with
+       | EventMouse em ->
+	   (match em with
+	      | MouseMotion(x,y) -> 
+		  iface#mouseover x y;
+		  curs#move x y;
+	      | MouseRelease(x,y,but) -> 
+		  iface#release x y; 
+		  curs#set_state "normal";
+	      | MouseClick(x,y,but) -> 
+		  iface#click x y; 
+		  curs#set_state "clicked";
+	      | _ -> ()
+	   )
+       | EventKeyboard ek->
+	 (match ek with
+	    | KeyboardPress (k,uk)-> 
+		iface#keypress (k,uk)
+	    | _ -> ()
+	 )
+       | _ -> ()
+    )
+  
+end;;
 
