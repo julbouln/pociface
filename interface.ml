@@ -32,6 +32,7 @@ open Core_event;;
 open Core_drawing;;
 open Core_stage;;
 open Core_type;;
+open Core_cursor;;
 
 
 open Binding;;
@@ -389,18 +390,16 @@ object(self)
     iface#update();
 
   method ev_parser e=
+    super#ev_parser e;
     (match e with
        | EventMouse em ->
 	   (match em with
 	      | MouseMotion(x,y) -> 
 		  iface#mouseover x y;
-		  curs#move x y;
 	      | MouseRelease(x,y,but) -> 
 		  iface#release x y; 
-		  curs#set_state "normal";
 	      | MouseClick(x,y,but) -> 
 		  iface#click x y; 
-		  curs#set_state "clicked";
 	      | _ -> ()
 	   )
        | EventKeyboard ek->
@@ -438,7 +437,8 @@ object (self)
   method get_val=
     let ofun()=
       let o=
-	new iface_stage generic_cursor (string_of_val (args_parser#get_val#get_val (`String "file")))
+	self#init_cursor();
+	new iface_stage curs (string_of_val (args_parser#get_val#get_val (`String "file")))
       in
 	self#init_object (o:>stage);
 	(o:>stage)	  
