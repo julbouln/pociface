@@ -1,4 +1,5 @@
 description = "Pocengine graphical interface"
 requires = "poccore"
 version = "0.1"
+archive(byte) = "pociface.cma"
 archive(native) = "pociface.cmxa"

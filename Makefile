@@ -2,7 +2,7 @@ OCAMLMAKEFILE = OCamlMakefile
 
 PACKS=poccore
 
-LIBINSTALL_FILES=*.cmi *.cmx *.a pociface.cmxa
+LIBINSTALL_FILES=*.cmi *.cmo *.cmx *.a pociface.cma pociface.cmxa
 
 SOURCES = iface_properties.ml iface_object.ml iface_container.ml iface_text.ml iface_button.ml iface_menu.ml iface_tool.ml iface_window.ml iface_misc.ml iface_theme.ml iface_xml.ml interface.ml iface_event.ml
 
@@ -11,6 +11,6 @@ DOC_FILES=$(SOURCES)
 
 RESULT  = pociface
 
-all : ncl
+all : ncl bcl
 
 include $(OCAMLMAKEFILE)
