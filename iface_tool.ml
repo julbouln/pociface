@@ -138,7 +138,7 @@ end;;
 (** generic toolbox object *)
 class virtual ['a] iface_toolbox (iv:'a) (c:('a) iface_tool array) =
 object(self)
-  inherit iface_vcontainer c as super
+  inherit [('a)iface_tool] iface_vcontainer c as super
   val mutable selected=
     new graphic_from_drawing "selected" (
       fun()->

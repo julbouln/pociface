@@ -152,7 +152,7 @@ object(self)
 
     val mutable bg=new iface_pgraphic_object bpgraph
     val mutable text=new graphic_text (rid^"/text_box") fnt_t color
-    val mutable fnt=(font_vault#get_cache_simple (get_font_id fnt_t))
+    val mutable fnt=(font_vault#get_cache_simple ((get_font_id fnt_t)^string_of_int (get_font_size fnt_t)))
 
     initializer
       text#set_lines il;

@@ -25,7 +25,7 @@ open Iface_properties;;
 (** Interface containers *)
 
 (** container object *)
-class iface_container c=
+class iface_container2 c=
   object (self)
     inherit iface_object 0 0 as super
     val mutable content=c
@@ -200,10 +200,201 @@ class iface_container c=
   end;;
 
 
-(** vertical container *)
-class iface_vcontainer c=
+open Value_common;;
+
+(** NEW container object *)
+class ['a] iface_container (c:'a array)=
   object (self)
-    inherit iface_container c as super
+    inherit ['a] generic_object_handler3
+    inherit iface_object 0 0 as super
+
+    initializer
+      Array.iter (
+	fun o->
+	  
+	  ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
+      ) c
+
+    val mutable valign=IAlignMiddle
+    val mutable halign=IAlignMiddle
+    val mutable fixed_size=false
+    val mutable symmetric_size=false
+
+    method set_valign v=valign<-v
+    method set_halign h=halign<-h
+
+    method set_fixed_size i=
+      fixed_size<-i
+
+    method set_symmetric_size i=
+      symmetric_size<-i
+
+
+    val mutable vrect=new rectangle 0 0 0 0 
+    method get_vrect=vrect
+
+    method resize w h=
+      super#resize w h;
+      vrect#set_size w h;
+
+    method set_layer l=
+      layer<-l;
+      self#foreach
+	(
+	  fun o->
+	    o#set_layer (layer+1)
+	);
+
+    initializer
+      self#init_childs();
+      self#init_layer 1;
+
+    method private init_childs()=
+      self#foreach
+	(
+	  fun o->
+	    o#set_parent (Some (self:>iface_object))
+	)
+
+    method private init_layer l=
+      self#foreach
+	(
+	  fun o->
+	    o#set_layer (self#get_layer+l)
+	);
+    method private foreach f=
+      let g k v=f v in 
+      self#foreach_object g
+      
+    method reset_size()=()
+
+    method get_rect=rect
+      
+    method private foreachi f=
+      let i=ref 0 in
+      let g k v=f !i v; i:= !i+1 in
+      self#foreach_object g;
+
+    method show()=
+      super#show();
+      self#foreach (let f obj=obj#show() in f)
+
+    method hide()=
+      super#hide();
+      self#foreach (let f obj=obj#hide() in f)
+
+    method put()=
+      super#put();
+      self#foreach (fun obj->
+		      if obj#get_embed then
+			obj#put()
+		   )
+
+    method on_click x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if obj#get_vrect#is_position x y then (
+	      
+	      obj#on_click x y;
+	    ) 
+	  )
+      );
+      super#on_click x y;
+
+    method on_release x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if obj#get_vrect#is_position x y then (
+	      
+	      obj#on_release x y;
+	    ) 
+	  )
+      );
+      super#on_release x y;
+
+    method on_mouseover x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	    if obj#get_vrect#is_position x y then (	      
+	      obj#on_mouseover x y;
+	    ) else obj#on_mouseout x y;
+	  )
+      );
+      super#on_mouseover x y;
+
+
+    method on_mouseout x y=
+      self#foreach (
+	fun obj->
+	  if obj#get_embed then (
+	      obj#on_mouseout x y;
+	  )
+      );
+      super#on_mouseout x y;
+
+    method pos_from_align (orect:rectangle)=
+      let (mw,mh)=if symmetric_size then (self#max_size()) else (rect#get_w,rect#get_h) in
+(*
+      let mw=self#get_rect#get_w and
+	  mh=self#get_rect#get_h in
+*)
+	  (
+	    (match halign with
+	       | IAlignLeft -> 0
+	       | IAlignRight -> mw - orect#get_w
+	       | IAlignMiddle -> mw/2 - orect#get_w/2
+	       | _ -> print_string "IFACE_CONTAINER: warning bad halign";print_newline();0
+	    ),
+	    (match valign with
+	       | IAlignTop -> 0
+	       | IAlignBottom -> mh - orect#get_h
+	       | IAlignMiddle -> mh/2 - orect#get_h/2
+	       | _ -> print_string "IFACE_CONTAINER: warning bad valign";print_newline();0
+	    )
+	  )
+
+    method move x y=
+      super#move x y;
+      vrect#set_position x y;
+
+    method private max_size()=
+      let w=ref 0 in
+      let h=ref 0 in
+      self#foreach (
+	fun obj->
+	  if obj#get_rect#get_h> !h then
+	    h:=obj#get_rect#get_h;
+	  if obj#get_rect#get_w> !w then
+	    w:=obj#get_rect#get_w
+      );
+
+	(!w,!h)
+
+    method private vmax_size()=
+      let w=ref 0 in
+      let h=ref 0 in
+      self#foreach (
+	fun obj->
+	  if obj#get_vrect#get_h> !h then
+	    h:=obj#get_vrect#get_h;
+	  if obj#get_vrect#get_w> !w then
+	    w:=obj#get_vrect#get_w
+      );
+	(!w,!h)
+
+
+    method lua_init()=
+      super#lua_init()
+  end;;
+
+
+(** vertical container *)
+class ['a] iface_vcontainer c=
+  object (self)
+    inherit ['a] iface_container c as super
 
 (* set childs size *)
     method resize (w:int) (h:int)=
@@ -280,9 +471,9 @@ class iface_vcontainer c=
   end;;
 
 (** horizontal container *)
-class iface_hcontainer c=
+class ['a] iface_hcontainer c=
   object (self)
-    inherit iface_container c as super
+    inherit ['a] iface_container c as super
 
 (* set childs size *)
     method resize (w:int) (h:int)=
