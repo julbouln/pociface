@@ -226,7 +226,7 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
 	      [
 		`Size(1,(fnt#get_height));
 		`Color color
-	    ];
+	      ];
 	    [|dr|]
       )   
 
