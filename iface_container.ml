@@ -21,11 +21,16 @@ open Rect;;
 
 open Iface_object;;
 
+open Iface_properties;;
+
 (** container widget *)
 class iface_container c=
   object (self)
     inherit iface_object 0 0 as super
     val mutable content=c
+
+    val mutable valign=VAlignMiddle
+    val mutable halign=HAlignLeft
 
     initializer
       self#reset_size();
@@ -120,6 +125,22 @@ class iface_container c=
       );
       super#on_mouseover x y;
 
+
+    method pos_from_align (orect:rectangle)=
+      (
+	(match halign with
+	   | HAlignLeft -> 0
+	   | HAlignRight -> rect#get_w - orect#get_w
+	   | HAlignMiddle -> rect#get_w/2 - orect#get_w/2
+	),
+	(match valign with
+	   | VAlignTop -> 0
+	   | VAlignBottom -> rect#get_h - orect#get_h
+	   | VAlignMiddle -> rect#get_h/2 - orect#get_h/2
+	)
+      )
+
+
   end;;
 
 
@@ -153,12 +174,14 @@ class iface_vcontainer c=
       in f
      );
 	vrect#set_size !vw !vh;
+
 	
     method move x y=
       super#move x y;
       self#foreachi (
 	fun i obj->
-	  obj#move x (y+ (obj#get_rect#get_h*i))
+	  let (ax,ay)=self#pos_from_align obj#get_rect in
+	  obj#move (x+ax) (y+ (obj#get_rect#get_h*i))
       )
 
 
@@ -201,7 +224,8 @@ class iface_hcontainer c=
       super#move x y;
       self#foreachi (
       fun i obj->
-	obj#move (x+(obj#get_rect#get_w*i)) y
+	let (ax,ay)=self#pos_from_align obj#get_rect in
+	obj#move (x+(obj#get_rect#get_w*i)) (y+ay)
      )
   end;;
 

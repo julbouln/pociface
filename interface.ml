@@ -19,6 +19,7 @@
 
 open Str;;
 
+open Generic;;
 open Rect;;
 open Low;;
 open Video;;
@@ -276,16 +277,14 @@ let iface_add_object iface obj=
 (** main iface class *)
 class interface_NEW=
   object (self)
+    inherit [iface_object] generic_object_handler
     val mutable canvas=new canvas_NEW
 
     val mutable interp=new lua_interp
     method get_interp=interp
 
-    val mutable objects=Hashtbl.create 2
- 
     initializer 
       self#init_lua()
-
 
     method init_lua()=
       interp#set_module_val "iface" "set_focus" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
@@ -299,26 +298,22 @@ class interface_NEW=
 (** general iface functions *)
 
     method iface_add_object (name:string) (obj:iface_object)=
-      obj#set_id name;
-      Hashtbl.add objects name obj;
+      self#add_object (Some name) obj;
       canvas#add_obj (obj:>canvas_object);
 
     method iface_del_object name=
-      Hashtbl.remove objects name;
+      self#delete_object name;
       canvas#del_obj (self#iface_get_object name:>canvas_object)
-
 
     method iface_get_object n=
       (try 
-	 Hashtbl.find objects n 
-       with Not_found -> 
+	 self#get_object n
+       with Object_not_found no-> 
 	   raise (Iface_object_not_found n)
       )
 
     method iface_is_object n=
-      (Hashtbl.mem objects n)
-
-    method get_object_hash=objects
+      self#is_object n
     
 
 (** functions on object *)
@@ -335,13 +330,15 @@ class interface_NEW=
     method set_focus f=
       focus<-f;
       self#unfocus_all();
+      if f<>"none" then (
       let o=self#iface_get_object focus in
 	o#set_focused true;
+      )
     method get_focus=focus
 
     method unfocus_all()=
       let f n obj=obj#set_focused false in
-      Hashtbl.iter f objects;
+	self#foreach_object f;
 
     method show_object n=
       let o=self#iface_get_object n in
@@ -353,12 +350,12 @@ class interface_NEW=
 
     method show_all()=
       let f n obj=obj#show() in
-      Hashtbl.iter f objects;
+      self#foreach_object f;
 
 
     method hide_all()=
       let f n obj=obj#hide() in
-      Hashtbl.iter f objects;
+      self#foreach_object f;
 
     method iface_get_object_name_at_position x y=
       let l=ref 0 in
@@ -376,7 +373,7 @@ class interface_NEW=
 	  )
 	)
       in
-      Hashtbl.iter f objects;
+      self#foreach_object f;
       !t
 
 
@@ -393,7 +390,7 @@ class interface_NEW=
 	  f obj
 	)
       in
-      Hashtbl.iter f objects;
+      self#foreach_object f;
 
 
     method iface_get_object_at_position x y=
@@ -430,7 +427,7 @@ class interface_NEW=
 	let f i obj=
 	  if is_mo i=false  then 
             obj#on_mouseout x y in     
-	  Hashtbl.iter f objects;
+	  self#foreach_object f;
 
     method mouseout x y=
 (*      let o=(self#iface_get_object_at_position x y) in *)
@@ -468,17 +465,18 @@ class interface_NEW=
 	  obj#on_release x y;
 	  obj#set_release ro in	
 	
-	Hashtbl.iter f objects;
+	self#foreach_object f;
 
 
 
     method keypress e=
-      let o=self#iface_get_object self#get_focus in
-	if o#is_showing==true then (
-(*	 ignore (interp#parse (o#get_id^".on_keypress("^string_of_int x^","^string_of_int y^")")) ; *)
-	o#on_keypress e;
-	)
-
+      if self#get_focus<>"none" then (
+	let o=self#iface_get_object self#get_focus in
+	  if o#is_showing==true then (
+(*	    ignore (interp#parse (o#get_id^".on_keypress("^string_of_int x^","^string_of_int y^")")) ;  *)
+	    o#on_keypress e;
+	  )
+      )
     
     method get_data x y=
       (self#iface_get_object_at_position x y)#get_data;
@@ -488,10 +486,10 @@ class interface_NEW=
 
 
     method move_all x y=
-      Hashtbl.iter (fun n o->
+      self#foreach_object (fun n o->
 		      let ox=o#get_rect#get_x and oy=o#get_rect#get_y in
 			o#move (ox + x) (oy + y)
-		   ) objects;
+		   );
       
     method update()=      
       canvas#refresh 0 0 0 0;

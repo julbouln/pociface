@@ -130,18 +130,28 @@ object(self)
   inherit xml_iface_object_parser as super
  
   val mutable txt=""
+  val mutable col=None
+  val mutable fnt=None
 
   method parse_child k v=
     super#parse_child k v;
     match k with
       | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
+      | "color" -> let p=(new xml_color_parser ) in p#parse v;col<-(Some p#get_val)
+      | "font" -> let p=(new xml_font_parser ) in p#parse v;fnt<-(Some p#get_val)
       | _ -> ()    
 
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
       let o=
-	new iface_label_static st#get_fnt st#get_foreground_color txt in
+	new iface_label_static 
+	  (match fnt with
+	     | Some f->f
+	     | None ->st#get_fnt)
+	  (match col with 
+	     | Some c->c
+	     | None -> st#get_foreground_color) txt in
 	super#init_object o;
 	o
     in
@@ -193,7 +203,7 @@ object(self)
  
   method get_val=
     let ofun()=
-      let o=new iface_graphic_file_object file (video#f_size_w w) (video#f_size_h h) in
+      let o=new iface_graphic_file_object file w h in
 	super#init_object o;
 	o
     in
@@ -390,6 +400,7 @@ object(self)
 end;;
 
 
+exception Xml_iface_parser_not_found of string;;
 
 class xml_interface_parser=
 object(self)
@@ -401,8 +412,11 @@ object(self)
   val mutable obj_parsers=Hashtbl.create 2
   method parser_add (n:string) (p:unit->xml_iface_object_parser)=Hashtbl.add obj_parsers n p
   method parser_is n=Hashtbl.mem obj_parsers n
-  method parser_get n=Hashtbl.find obj_parsers n
-
+  method parser_get n=
+    (try
+       Hashtbl.find obj_parsers n
+     with
+	 Not_found -> raise (Xml_iface_parser_not_found n))
 
   val mutable theme=new iface_theme (Hashtbl.create 2)
   method get_style s=theme#get_style s    
