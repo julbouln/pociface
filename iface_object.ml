@@ -21,21 +21,22 @@ open Low;;
 
 open Rect;;
 open Medias;;
+open Vfs;;
 
 open Event_manager;;
 
 (** parent widget *)
 class iface_object w h=
 object(self)
+    inherit canvas_object
+
     val mutable id="none"
     method set_id i=id<-i
     method get_id=id
 
-(*
-    val mutable parent=new iface_object w h
-    method set_parent p=parent<-p
-    method get_parent=parent
-*)
+    val mutable layer=0
+    method set_layer l=layer<-l
+    method get_layer=layer
 
     val mutable data=0
     val mutable data1=0
@@ -135,28 +136,40 @@ class iface_graphic_colored_object file w h un uc=
 
 
 (** special graphic resize with 9 tiles *)
-class iface_rgraphic_object file iw ih=
+class iface_rgraphic_object rid ptile=
 object(self)
-  inherit iface_object iw ih as super
+  inherit iface_object 0 0 as super
 
-  val mutable gen=new graphic_simple_from_func (file^"/gen") (fun()->tile_load file)
-  val mutable gr=new graphic_generic_object file
 
+  val mutable gr=new graphic_generic_object rid
   val mutable crect=new rectangle 0 0 0 0
 
-  val mutable w=iw
-  val mutable h=ih
-
   method resize nw nh=
-    w<-nw;h<-nh;
-    self#init();
+    rect#set_size nw nh;
+
+  method border_size=
+    ((crect#get_w),(crect#get_h))
 
   method private init()=
-    crect#set_size (gen#get_rect#get_w/3) (gen#get_rect#get_h/3);
-    gr<-new graphic_object (crect#get_w) (crect#get_h) file false false;
-    
+(*    let gen=new graphic_real_object (rid^"/gen") (ptile) in *)
+    let cw=tile_get_w ptile and
+	ch=tile_get_h ptile in
+      crect#set_size (cw/3) (ch/3);
+
+    gr<-new graphic_from_func rid (
+      fun()->
+	let ta=tile_split ptile crect#get_w crect#get_h in
+	  for i=0 to (Array.length (ta))-1 do
+	    tile_set_alpha ta.(i) 255 255 255; 
+	  done;
+	  ta
+    );
+
+
+
   initializer
     self#init()
+
 (*
 
 036
@@ -164,14 +177,11 @@ object(self)
 258
 
 *)
-  method move x y=
-    super#move x y;
-    gr#move x y;
 
   method put()=
     if self#is_showing then (
-      let cw=w/crect#get_w and
-	  ch=h/crect#get_h in    
+      let cw=rect#get_w/crect#get_w and
+	  ch=rect#get_h/crect#get_h in    
 	for i=0 to cw do
 	  for j=0 to ch do
 	    (match (i,j) with

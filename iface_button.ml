@@ -77,8 +77,8 @@ class iface_button_icon icon w h iw ih=
 (*      super#put(); *)
       if showing==true then 
 	(
-	 ic#move (graphic#get_rect#get_x) (graphic#get_rect#get_y);
-	 ic#put();
+	  ic#move (graphic#get_rect#get_x) (graphic#get_rect#get_y);
+	  ic#put();
 	)
 
   end;;
@@ -120,3 +120,90 @@ class iface_checkbox f fnt txt=
 end;;
 
 
+(* NEW *)
+
+class iface_rbutton rid nptile cptile=
+object
+  inherit iface_object 0 0 as super
+
+  val mutable ngr=new iface_rgraphic_object (rid^":normal") nptile
+  val mutable cgr=new iface_rgraphic_object (rid^":clicked") cptile
+
+  val mutable is_clicked=false
+  val mutable is_mouseover=false
+
+  method on_mouseover x y=super#on_mouseover x y;is_mouseover<-true
+  method on_mouseout x y=super#on_mouseout x y;is_mouseover<-false
+
+  method on_click x y=
+    is_clicked<-true;
+    super#on_click x y
+      
+  method on_release x y=
+    is_clicked<-false;
+    super#on_release x y 
+
+  method show()=
+    super#show();
+    ngr#show();
+    cgr#show();
+
+  method hide()=
+    super#hide();
+    ngr#hide();
+    cgr#hide();
+
+  method move x y=
+    super#move x y;
+    ngr#move x y;
+    cgr#move x y;
+
+  method put()=
+    if is_clicked then
+      cgr#put()
+    else
+      ngr#put()
+
+  method private resize nw nh=
+    rect#set_size nw nh;
+    ngr#resize nw nh;
+    cgr#resize nw nh;
+
+    
+end;;
+
+
+(** button with label widget *)
+class iface_rbutton_with_label rid nptile cptile fnt tcol txt=
+object(self)
+    inherit iface_rbutton rid nptile cptile as super
+
+    val mutable label=
+      (new iface_label_static fnt tcol txt)
+	
+    method private init_size()=
+      let (bw,bh)=ngr#border_size in
+      super#resize (label#get_rect#get_w+(bw*2)) (label#get_rect#get_h+(bh*2))
+
+    method show()=
+      super#show();
+      label#show();
+      
+    method hide()=
+      super#hide();
+      label#show();
+
+    method move x y=
+      super#move x y;
+      let (bw,bh)=ngr#border_size in
+      label#move (x+bw) (y+bh);
+
+    method put()=
+      self#init_size();
+      super#put();
+      if showing==true then 
+	(
+	 label#put();
+	)
+
+  end;;

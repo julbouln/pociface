@@ -27,23 +27,15 @@ class iface_container c=
     inherit iface_object 0 0 as super
     val mutable content=c
 
-(*
-    method init_content()=
-      self#foreach (fun obj->
-		      obj#set_parent (self:>iface_object)
-		   )
-
     initializer
-      self#init_content();
-*)
+      self#reset_size();
+
     method private foreach f=
       Array.iter f content;
       
-    method private reset_size()=()
+    method reset_size()=()
 
-    method get_rect=
-      self#reset_size();
-      rect
+    method get_rect=rect
       
     method private foreachi f=
       Array.iteri f content;
@@ -56,10 +48,10 @@ class iface_container c=
       super#hide();
       self#foreach (let f obj=obj#hide() in f)
 
-    method put()=
+(*    method put()=
       super#put();
       self#foreach (let f obj=obj#put() in f)
-
+*)
   end;;
 
 
@@ -68,10 +60,10 @@ class iface_vcontainer c=
   object (self)
     inherit iface_container c as super
 
-    val mutable vrect=new rectangle 0 0 0 0
+    val mutable vrect=new rectangle 0 0 0 0 
     method get_vrect=vrect
 
-    method private reset_size()=
+    method reset_size()=
       let w=ref 0 in
       let h=ref 0 in
       self#foreach (
@@ -111,7 +103,7 @@ class iface_hcontainer c=
     val mutable vrect=new rectangle 0 0 0 0
     method get_vrect=vrect
 
-    method private reset_size()=
+    method reset_size()=
       let w=ref 0 in
       let h=ref 0 in
       self#foreach (

@@ -66,11 +66,13 @@ class interface bgfile w h=
       
 
     val mutable focus="none"
+
     method set_focus f=
       focus<-f;
       self#unfocus_all();
       let o=self#get_object_char focus in
 	o#set_focused true;
+
     method get_focus=focus
 
 
@@ -116,6 +118,7 @@ class interface bgfile w h=
       Array.iter f object_array;
 
     method get_object_num_at_position x y=
+
       let t=ref (0) in
       let f i obj=
 	if x > obj#get_vrect#get_x 
@@ -266,4 +269,242 @@ let iface_add_object iface obj=
   let nbut=iface#get_cur_obj - 1 in
   let o=(iface#get_object_num nbut) in
   o;;
+
+
+(* NEW *)
+
+(** main iface class *)
+class interface_NEW=
+  object (self)
+    val mutable canvas=new canvas_NEW
+
+    val mutable interp=new lua_interp
+    method get_interp=interp
+
+    val mutable objects=Hashtbl.create 2
+ 
+    initializer 
+      self#init_lua()
+
+
+    method init_lua()=
+      interp#set_module_val "iface" "set_focus" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
+      interp#set_module_val "iface" "show_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#show_object);
+      interp#set_module_val "iface" "hide_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
+      interp#set_module_val "iface" "object_get_text" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
+      interp#set_global_val "exit" (OLuaVal.efunc (OLuaVal.int **->> OLuaVal.unit) exit);
+      
+    val mutable focus="none"
+
+(** general iface functions *)
+
+    method iface_add_object (name:string) (obj:iface_object)=
+      obj#set_id name;
+      Hashtbl.add objects name obj;
+      canvas#add_obj (obj:>canvas_object);
+
+    method iface_del_object name=
+      Hashtbl.remove objects name;
+      canvas#del_obj (self#iface_get_object name:>canvas_object)
+
+
+    method iface_get_object n=
+      (try 
+	 Hashtbl.find objects n 
+       with Not_found -> 
+	   raise (Iface_object_not_found n)
+      )
+
+    method iface_is_object n=
+      (Hashtbl.mem objects n)
+
+    method get_object_hash=objects
+    
+
+(** functions on object *)
+
+    method object_get_text n=
+      let o=self#iface_get_object n in
+	o#get_data_text
+
+    method object_set_text n t=
+      let o=self#iface_get_object n in
+	o#set_data_text t
+
+
+    method set_focus f=
+      focus<-f;
+      self#unfocus_all();
+      let o=self#iface_get_object focus in
+	o#set_focused true;
+    method get_focus=focus
+
+    method unfocus_all()=
+      let f n obj=obj#set_focused false in
+      Hashtbl.iter f objects;
+
+    method show_object n=
+      let o=self#iface_get_object n in
+	o#show();
+
+    method hide_object n=
+      let o=self#iface_get_object n in
+	o#hide();
+
+    method show_all()=
+      let f n obj=obj#show() in
+      Hashtbl.iter f objects;
+
+
+    method hide_all()=
+      let f n obj=obj#hide() in
+      Hashtbl.iter f objects;
+
+    method iface_get_object_name_at_position x y=
+      let l=ref 0 in
+      let t=ref ("none") in
+      let f n obj=
+	if x > obj#get_vrect#get_x 
+	    && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	    && y > obj#get_vrect#get_y 
+	    && y < (obj#get_vrect#get_h + obj#get_vrect#get_y) 
+	    && obj#is_showing==true 
+	then (
+	  if !l<=obj#get_layer then (
+	    t:=n;
+	    l:=obj#get_layer;
+	  )
+	)
+      in
+      Hashtbl.iter f objects;
+      !t
+
+
+    method iface_foreach_object_at_position x y f=
+      let l=ref 0 in
+      let t=ref ("none") in
+      let f n obj=
+	if x > obj#get_vrect#get_x 
+	    && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	    && y > obj#get_vrect#get_y 
+	    && y < (obj#get_vrect#get_h + obj#get_vrect#get_y) 
+	    && obj#is_showing==true 
+	then (
+	  f obj
+	)
+      in
+      Hashtbl.iter f objects;
+
+
+    method iface_get_object_at_position x y=
+      self#iface_get_object (self#iface_get_object_name_at_position x y)
+
+(** iface events *)
+
+    method mouseover x y=
+(*
+	let f i obj=
+	  if i<>n then 
+            obj#on_mouseout x y in     
+	  Hashtbl.iter f objects;
+*)
+      let mo=DynArray.create() in
+      self#iface_foreach_object_at_position x y (
+	fun obj->
+	  if obj#is_showing==true then 
+	    (
+	      DynArray.add mo obj#get_id;
+	      obj#on_mouseover x y; 
+	    );
+      );
+	
+	let is_mo n=
+	  let r=ref false in
+	    DynArray.iter
+	      ( fun cn->
+		  if cn=n then r:=true
+	      ) mo;
+	    !r
+	in
+
+	let f i obj=
+	  if is_mo i=false  then 
+            obj#on_mouseout x y in     
+	  Hashtbl.iter f objects;
+
+    method mouseout x y=
+(*      let o=(self#iface_get_object_at_position x y) in *)
+      self#iface_foreach_object_at_position x y (
+	fun o->
+	  if o#is_showing==true then ( 
+	    o#on_mouseout x y;
+	  )
+      )
+
+    method click x y=
+(*      let o=(self#iface_get_object_at_position x y) in *)
+      self#iface_foreach_object_at_position x y (
+	fun o->
+      if o#is_showing==true then ( 
+	 ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ;
+	o#on_click x y;
+      )
+      )
+
+
+    method release x y=
+      let n=(self#iface_get_object_name_at_position x y) in
+
+      let f i obj=
+	if i=n then (
+	  if obj#is_showing==true then (
+	    ignore (interp#parse (obj#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ;
+	    obj#on_release x y;
+	  );
+	);
+	let ro=obj#get_release in
+	  obj#set_release (function()->());
+	  
+	  obj#on_release x y;
+	  obj#set_release ro in	
+	
+	Hashtbl.iter f objects;
+
+
+
+    method keypress e=
+      let o=self#iface_get_object self#get_focus in
+	if o#is_showing==true then (
+(*	 ignore (interp#parse (o#get_id^".on_keypress("^string_of_int x^","^string_of_int y^")")) ; *)
+	o#on_keypress e;
+	)
+
+    
+    method get_data x y=
+      (self#iface_get_object_at_position x y)#get_data;
+
+    method set_data x y d=
+      (self#iface_get_object_at_position x y)#set_data d;
+
+
+    method move_all x y=
+      Hashtbl.iter (fun n o->
+		      let ox=o#get_rect#get_x and oy=o#get_rect#get_y in
+			o#move (ox + x) (oy + y)
+		   ) objects;
+      
+    method update()=      
+      canvas#refresh 0 0 0 0;
+
+
+	if focus<> "none" then (
+	  let fo=self#iface_get_object focus in
+	    if fo#is_showing then (
+	      let t=tile_rect (fo#get_rect#get_w+2) (fo#get_rect#get_h+2) (0,0,0) in
+		tile_put t (fo#get_rect#get_x-1) (fo#get_rect#get_y-1);
+		tile_free t;
+	    )
+	)
+  end;;
+
 

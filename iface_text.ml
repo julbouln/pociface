@@ -221,10 +221,9 @@ end;;
 exception Text_error of string;;
 
 (* FIXME must inherit graphic_generic_object *)
-class text id fnt=
+class text id fnt (col:color)=
 object(self)
   val mutable graphic=new graphic_generic_object id
-
 
   val mutable id=id
   method set_id i=id<-i
@@ -277,36 +276,43 @@ in
       done;
       graphic#get_rect#set_size (!cw) (!ch);
       
-  val mutable color=(0,0,0)
+  val mutable color=col
   method get_color=color
   method set_color c=color<-c
 
 
-  method move x y=graphic#move x y
+  method move x y=
+    graphic#move x y;
+(*    for i=0 to (List.length self#get_text)-1 do
+      let ty=(graphic#get_rect#get_y) in
+	graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
+	graphic#move (graphic#get_rect#get_x) (ty);
+    done;
+*)
   method get_rect=graphic#get_rect
 
   method put()=
     for i=0 to (List.length self#get_text)-1 do
-      let ty=(graphic#get_rect#get_y) in
 	graphic#set_cur_tile i;
-	graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
 	graphic#put();	
-	graphic#move (graphic#get_rect#get_x) (ty);
+
     done;
 
 end;;
 
 
 (** text edit widget multiline *)
-class iface_text_edit_box fnt color bw il=
+class iface_text_edit_box rid bptile fnt color bw il=
   object (self)
     inherit iface_object bw (fnt#get_height) as super
+
+    val mutable bg=new iface_rgraphic_object rid bptile
 
     val mutable lines=il
     method private set_lines l=lines<-l
     method private get_lines=lines
 
-    val mutable text=new text "text_edit" fnt
+    val mutable text=new text "text_edit" fnt color
     val mutable te=new text_edit
    
     method private get_textedit=te
@@ -329,15 +335,17 @@ class iface_text_edit_box fnt color bw il=
       text#set_text (data_text);
 
 
-
-
     initializer
       text#set_max_size (bw/8);
-      rect<-new rectangle 0 0 (bw+12) (fnt#get_height+12)
+      let (brw,brh)=bg#border_size in
+      rect<-new rectangle 0 0 (bw+(brw*2)) (fnt#get_height+(brh*2));
+      bg#resize rect#get_w rect#get_h;
 
     method move x y=
-  
-      rect#set_position (x-6) (y-6)
+      let (brw,brh)=bg#border_size in
+      text#move (x+brw) (y+brh);
+      bg#move (x) (y);
+      rect#set_position (x) (y)
 
 
     method on_click x y=
@@ -356,26 +364,27 @@ class iface_text_edit_box fnt color bw il=
 	if l<>0 then
 	  lines<-l;
 
+    method hide()=
+      super#hide();
+      bg#hide();
+
+    method show()=
+      super#show();
+      bg#show();
+
     method put()=
 
       if showing==true then (	  
-	rect#set_size (bw+12) ((fnt#get_height*lines)+12);
-	  let t=tile_rect (bw+12) ((fnt#get_height*lines)+12) (0,0,0) in
-	    tile_put t (rect#get_x) (rect#get_y);
-	    tile_free t;
-	  let bg=tile_box (bw+10) ((fnt#get_height*lines)+10) (200,200,200) in
-	    tile_put bg (rect#get_x+1) (rect#get_y+1);
-	    tile_free bg;
+	let (brw,brh)=bg#border_size in
+	rect#set_size (bw+(brw*2)) ((fnt#get_height*lines)+(brh*2));
+	bg#put();
 	if te#get_text<>"" then(
-
-	  text#move (rect#get_x+6) (rect#get_y+6);
 	  text#set_id self#get_id;
-
 	  text#put()
       );	    
 	if focused  then (
 	    if cur_c>cur_refresh/2 then (
-	      let cu=tile_rect 1 (fnt#get_height + 4) (0,0,0) in
+	      let cu=tile_rect 1 (fnt#get_height + 4) color in
 	      let cline=te#get_cur_pos/text#get_max_size in
 	      let mline=(te#get_cur_pos - (cline*text#get_max_size)) in
 	      let tt=
@@ -389,7 +398,8 @@ class iface_text_edit_box fnt color bw il=
 		    with Invalid_argument x -> (raise (Text_error ("put:"^string_of_int mline)));
 		  else "" in
 	      let (cw,ch)=fnt#sizeof_text tt in
-		tile_put cu (rect#get_x + cw +6) (rect#get_y-2+6 + ch*(cline));
+	      let (brw,brh)=bg#border_size in
+		tile_put cu (rect#get_x + cw +(brw)) (rect#get_y-2+(brh) + ch*(cline));
 		tile_free cu;
 	    );
 	    if cur_c=cur_refresh then cur_c<-0
@@ -401,15 +411,15 @@ class iface_text_edit_box fnt color bw il=
   end;;
 
 (** text edit widget 1 line *)
-class iface_text_edit fnt color bw=
+class iface_text_edit rid bptile fnt color bw=
 object
-  inherit iface_text_edit_box fnt color bw 1 as super
+  inherit iface_text_edit_box rid bptile fnt color bw 1 as super
 end
 
 (** password edit widget *)
-class iface_password_edit fnt color bw=
+class iface_password_edit rid bptile fnt color bw=
   object (self)
-    inherit iface_text_edit fnt color bw as super
+    inherit iface_text_edit rid bptile fnt color bw as super
       
     method set_data_text t=
       let tmp=ref "" in

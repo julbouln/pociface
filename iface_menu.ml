@@ -323,6 +323,7 @@ object
   inherit iface_selectbox fnt e
 end;;
 
+(** NEW *)
 
 
 (** IFACE MENU *)
@@ -336,249 +337,298 @@ type iface_menu_position=
   | MenuRight
   | MenuBottom;;
 
-class iface_menu (pos:iface_menu_position) (mt:iface_object*iface_menu_t list) (parent:(iface_object*iface_menu_t list) option)=
+class iface_menu rid ptile (pos:iface_menu_position) (mt:iface_object*iface_menu_t list)=
 object(self)
+  inherit iface_object 0 0 as super
+
   val mutable tobj=(fst mt)
+  val mutable fond=new iface_rgraphic_object (rid) ptile
 
-(*  val mutable tfond=new iface_rgraphic_object "medias/iface/motif_editor.png" 0 0 *)
-  val mutable fond=new iface_rgraphic_object "medias/iface/motif_editor.png" 0 0
-	
-  inherit iface_vcontainer
-    (
-      let a=DynArray.create() in
-	List.iter ( fun v->
-		      (match v with
-			 | Menu (o,tl)->
-			     DynArray.add a (new iface_menu MenuRight (o,tl) (Some mt):>iface_object)
-			 | MenuEntry o ->DynArray.add a o
-		      );
+  val mutable menu=new iface_container ([||])
 
-		  ) (snd mt);
-	DynArray.to_array a    
-    ) as super
+  val mutable submenus=DynArray.create()
+  method foreach_submenu f=
+    DynArray.iter f submenus
+  method submenus_list=DynArray.to_list submenus
+
+  val mutable vrect=new rectangle 0 0 0 0
+  method get_vrect=vrect
 
   method show()=
-(*    tfond#show(); *)
+    super#show();
     tobj#show();
-  
-  
+    
   method hide()=
-(*    tfond#hide(); *)
+    super#hide();
     tobj#hide();
-    fond#hide();
-    super#hide()
+
+    self#close_menu();
 
   method put()=
     fond#put();
-(*    tfond#put(); *)
     tobj#put();
-    super#put();
+    menu#put();
 
-  method is_showing=tobj#is_showing
-
-  val mutable rrect=new rectangle 0 0 0 0
-
-  method get_vrect=
-    self#reset_size();
-    vrect
-
-  method get_rect=
-    self#reset_size();
-    rrect
-
-  method private parse_tree nd f=
-    let rec parse_tree_t t f=
-    List.iter (
-      fun v->
-	match v with
-	  | Menu (o,tl)->f false o;parse_tree_t tl f;	      
-	  | MenuEntry o -> f true o
-    ) t in
-      parse_tree_t nd f
+    self#foreach_submenu (
+      fun sm->
+	sm#put();
+    );
 
 
-  method is_last()=
-    let r=ref false in
-      self#parse_tree (snd mt) (fun nr o->r:=nr);
-      !r
+
 
   method private pos_position x y=
-    let (pw,ph)=self#size_from_parent() in
     match pos with
-      | MenuRight -> ((x+pw),y)
+      | MenuRight -> ((x+tobj#get_rect#get_w),y)
       | MenuBottom ->(x,(y+tobj#get_rect#get_h));
 
   method private pos_size w h=
     match pos with
-      | MenuRight -> ((w+tobj#get_rect#get_w+32),h)
+      | MenuRight -> ((w+tobj#get_rect#get_w),h)
       | MenuBottom ->(h,(h+tobj#get_rect#get_h));
 
+
   method move x y=
+    vrect#set_position x y;
+    super#move x y;
+
     let (nx,ny)=self#pos_position x y in
-      fond#move (nx) (ny);
-      super#move (nx+8) (ny+8);
-(*    tfond#move x y; *)
+    let (brw,brh)=fond#border_size in
       tobj#move (x) (y);
-      rrect#set_position x y;
-      vrect#set_position x y;
-    
-  method close()=
-    fond#hide();
-    super#hide();
-    
+      menu#move (nx+brw) (ny+brh);
+      fond#move nx ny;
 
-  method reset_size()=
-    super#reset_size();
-    rrect#set_size (tobj#get_rect#get_w) (tobj#get_rect#get_h);
-(*(rect#get_h+tobj#get_rect#get_h + 8 + 16);*)
-
-    let (rnw,rnh)=self#pos_size rect#get_w rect#get_h in
-    rect#set_size (rnw) (rnh);
-
-    let (vnw,vnh)=self#pos_size vrect#get_w vrect#get_h in
-    vrect#set_size (vnw) (vnh);
-
-
-
-  method private init()=
-    self#reset_size();
-    fond#resize (rect#get_w) (rect#get_h); 
-(*    tfond#resize (tobj#get_rect#get_w+16) (tobj#get_rect#get_h);	*)
-    let (pw,ph)=self#size_from_parent() in
-      fond#resize pw ph;
-
-
-  method init_tree()=
-    self#parse_tree (snd mt) (
-      fun r o->
-	if r then
-	  o#append_click self#close
-    );
-				
-  method get_parent=
-    match parent with
-      | Some (o,tl)->o
-      | None->new iface_object 0 0
-
-
-
-  method size_from_parent()=
-    match parent with
-      | Some v->
-	  let (o,tl)=v in
-	  let w=ref 0 in
-	    List.iter (
-	      fun (ct)->
-		match ct with
-		  | Menu (co,ctl) ->
-		    if !w <co#get_rect#get_w then
-		      w:=co#get_rect#get_w		
-		  | MenuEntry (co) ->
-		    if !w <co#get_rect#get_w then
-		      w:=co#get_rect#get_w		
-	    ) tl;
-	    ((!w+16),(rect#get_h+16));	    
-      | None->(0,0)
-	  
-  method init_parent()=
-    (
-      match parent with
-	| Some v->
-	    let (o,tl)=v in
-	    List.iter (
-	      fun ct->
-		match ct with
-		  | Menu (co,ctl) ->
-(*		      if co<>(fst mt) then
-		      co#append_click self#close
-*)
-		      List.iter (		      
-			fun cct->			  
-			  match cct with
-			    | Menu (cco,cctl) ->
-				if cco<>(fst mt) then
-				cco#append_click self#close
-			    | MenuEntry (cco) -> 
-				cco#append_click self#close
-
-		      ) ctl;
-
-		  | MenuEntry co ->
-		      co#append_click self#close
-	    ) tl;
-	| None->()
-	    
-    );
 
   initializer
-    self#init();
-(*    self#init_parent(); *)
-    self#init_tree(); 
+    menu<-new iface_vcontainer
+    (
+      let sms=DynArray.create() in
+      let a=DynArray.create() in
+      let i=ref 0 in
+
+	List.iter ( fun v->
+		      (match v with
+			 | Menu (o,tl)->
+			     let sm=new iface_menu (rid^":"^string_of_int !i) ptile MenuRight (o,tl) in
+			       DynArray.add a (sm:>iface_object);
+			       DynArray.add submenus sm;
+			 | MenuEntry o ->DynArray.add a o
+		      );
+
+		      i:= !i+1;
+		  ) (snd mt);
+	DynArray.to_array a    
+    );
+
+    self#init_size();
 
 
-  method is_tobj x y=
-    x > tobj#get_rect#get_x 
-    && x < (tobj#get_rect#get_w + tobj#get_rect#get_x) 
-    && y > tobj#get_rect#get_y 
-    && y < (tobj#get_rect#get_h + tobj#get_rect#get_y) 
+
+  method init_size()=
+    menu#reset_size();
+    let (brw,brh)=fond#border_size in
+    fond#resize (menu#get_rect#get_w+(brw*2)) (menu#get_rect#get_h+(brh*2)); 
+
+    rect#set_size tobj#get_rect#get_w tobj#get_rect#get_h;
+    vrect#set_size tobj#get_rect#get_w tobj#get_rect#get_h;
+
+
+  method reset_size()=
+    menu#reset_size();
+    if menu#is_showing then (
+	vrect#set_size (tobj#get_rect#get_w+menu#get_vrect#get_w) (tobj#get_rect#get_h+menu#get_vrect#get_h);
+(*	vrect#set_position (rect#get_x+tobj#get_rect#get_w-32) (vrect#get_y) *)
+    )
+    else
+      vrect#set_size (tobj#get_rect#get_w) (tobj#get_rect#get_h);
+
+
+  method open_menu()=
+    fond#show();
+    menu#show();
+  
+  method close_menu()=
+    fond#hide();
+    menu#hide();
+
+  method on_mouseover x y=
+    self#foreach_submenu (
+      fun obj->
+	if x > obj#get_vrect#get_x 
+	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	  && y > obj#get_vrect#get_y 
+	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	then (
+	  obj#on_mouseover x y;
+	) else
+	  obj#on_mouseout x y
+    );
+
+    self#open_menu();
+    self#reset_size();
+
+
+
+
+  method on_mouseout x y=
+    self#foreach_submenu (
+      fun obj->
+	if x > obj#get_vrect#get_x 
+	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	  && y > obj#get_vrect#get_y 
+	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	then (
+	  obj#on_mouseout x y; 
+	) 
+    );
+
+    self#close_menu();
+    self#reset_size();
 
 
       
   method on_click x y=
-
-
-   if self#is_tobj x y then 
-      (
-	if super#is_showing then
-	  (
-	    fond#hide();
-	    super#hide()
-	  )
-	else
-	  (
-	    fond#show();
-	    super#show()
-	  )
-      );
-
-
-    if self#is_showing then (
-      tobj#on_click x y;
-(*      super#on_click x y; *)
-   );
-
- 
-    if super#is_showing then ( 
-      self#foreachi (
-	(fun i obj->
-	   if x > obj#get_vrect#get_x 
-	     && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	     && y > obj#get_vrect#get_y 
-	     && y < (obj#get_vrect#get_h + obj#get_vrect#get_y) 
-	   then (
-	     obj#on_click x y;
-	   )
-	));
-    );    
+    self#open_menu();
+    self#reset_size();
 
 
 
-    print_string "IFACE : menu click";print_newline();
-
-
-(*    click();	     *)
-
-
-(*    super#on_click x y; *)
-
-(* show hide menu with mouse click *)
- 
-
-(*  method on_mouseout x y=
-    super#on_mouseout x y;
-*)
 
 end;;
+
+
+
+
+class iface_menubar rid ptile c=
+object(self)
+  inherit iface_object 0 0 as super
+
+  val mutable fond=new iface_rgraphic_object (rid) ptile
+
+  val mutable submenus=DynArray.create()
+  method foreach_submenu f=
+    DynArray.iter f submenus
+  method submenus_list=DynArray.to_list submenus
+
+
+  val mutable menus=new iface_container [||]
+
+  val mutable vrect=new rectangle 0 0 0 0 
+  method get_vrect=vrect  
+
+
+
+  initializer
+  menus<-new iface_hcontainer (
+    
+    let a=DynArray.create() in
+    let i=ref 0 in
+	List.iter ( fun v->
+		      (match v with
+			 | Menu (o,tl)->
+			     let me=new iface_menu (rid^":"^string_of_int !i) ptile MenuBottom (o,tl) in
+			       DynArray.add a (me:>iface_object);
+			       DynArray.add submenus me;
+			 | _ -> ()
+			     
+		      );
+		      i:= !i+1;
+		  ) c;
+	DynArray.to_array a        
+    );
+    self#reset_size();
+
+
+
+  method reset_size()=
+    self#foreach_submenu (
+      fun obj->
+	obj#reset_size();
+    );
+    menus#reset_size();
+    
+    rect#set_size menus#get_rect#get_w menus#get_rect#get_h;
+    vrect#set_size menus#get_vrect#get_w menus#get_vrect#get_h;
+    let (brw,brh)=fond#border_size in
+    fond#resize (rect#get_w+(brw*2)) (rect#get_h+(brh*2));
+
+  method move x y=
+    vrect#set_position x y;
+    super#move x y;
+    let (brw,brh)=fond#border_size in
+      menus#move (x+brw) (y+brh);
+      fond#move x y;
+
+  method put()=
+    fond#put();
+    self#foreach_submenu (
+      fun obj->
+	obj#put();
+    );
+    
+    menus#put();
+  
+  method show()=
+    fond#show();
+    super#show();
+    menus#show();
+ 
+  method hide()=
+    fond#hide();
+    super#hide();
+    menus#hide();
+
+
+  method on_mouseover x y=
+    self#foreach_submenu (
+      fun obj->
+	if x > obj#get_vrect#get_x 
+	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	  && y > obj#get_vrect#get_y 
+	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	then (
+	  obj#on_mouseover x y;
+	) else
+	  obj#on_mouseout x y
+    );
+
+    self#reset_size();
+
+  method on_mouseout x y=
+    self#foreach_submenu (
+      fun obj->
+	if x > obj#get_vrect#get_x 
+	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	  && y > obj#get_vrect#get_y 
+	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	then (
+	  obj#on_mouseout x y; 
+	) 
+    );
+ 
+    self#reset_size();
+
+  method on_click x y=
+    self#foreach_submenu (
+      fun obj->
+	if x > obj#get_vrect#get_x 
+	  && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
+	  && y > obj#get_vrect#get_y 
+	  && y < (obj#get_vrect#get_h + obj#get_vrect#get_y)
+	then (
+	  obj#open_menu();
+	  obj#reset_size();
+	) 
+    );
+
+    self#reset_size();
+
+
+end;;
+
+
+
+
 
 
 
@@ -621,44 +671,6 @@ object(self)
     lab#put();
 end;;
 
-
-
-class iface_menubar c=
-object(self)
-  inherit iface_hcontainer (
-    
-    let a=DynArray.create() in
-	List.iter ( fun v->
-		      (match v with
-			 | Menu (o,tl)->DynArray.add a (new iface_menu MenuBottom (o,tl) (Some (o,tl)) :>iface_object)
-			 | _ -> ()
-			     
-		      );
-		      
-		  ) c;
-	DynArray.to_array a        
-    ) as super
-
-  initializer
-    self#reset_size();
-    
-  method on_click x y=    
-    super#on_click x y;
-    if super#is_showing then (
-      self#foreachi (
-	(fun i obj->
-	   if x > obj#get_vrect#get_x 
-	     && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
-	     && y > obj#get_vrect#get_y 
-	     && y < (obj#get_vrect#get_h + obj#get_vrect#get_y) 
-	   then (
-	     obj#on_click x y;
-	   )
-	));
-    );    
-
-
-end;;
 
 
 
