@@ -219,11 +219,13 @@ object(self)
   inherit xml_iface_object_parser as super
 
   val mutable l=1
+  val mutable text=""
 
   method parse_child k v=
     super#parse_child k v;
     match k with
       | "lines" -> let p=(new xml_int_parser "n") in p#parse v;l<-p#get_val
+      | "text" -> text<-v#pcdata
       | _ -> ()    
 
  
@@ -237,6 +239,7 @@ object(self)
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
 	  (main#f_size_w w) l in
+	o#set_data_text text;
 	super#init_object o;
 	o
     in
