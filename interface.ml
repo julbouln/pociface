@@ -1,5 +1,5 @@
 (*
-    Battle For Rashitoul - The ultimate strategy/arcade game
+    pociface - create your own interface
     Copyright (C) 2003,2004,2005 POC 
 
     This program is free software; you can redistribute it and/or modify
