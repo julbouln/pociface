@@ -159,6 +159,7 @@ object(self)
       [(id,lua,ofun)]
 end;;
 
+
 (** iface text edit parser *)
 class xml_iface_text_edit_parser=
 object(self)
@@ -168,6 +169,31 @@ object(self)
     let ofun()=
       let st=theme#get_style nm in
       let o=	new iface_text_edit id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) in
+	super#init_object o;
+	o
+    in
+      [(id,lua,ofun)]
+end;;
+
+
+(** iface text edit box parser *)
+class xml_iface_text_edit_box_parser=
+object(self)
+  inherit xml_iface_object_parser as super
+
+  val mutable l=1
+
+  method parse_child k v=
+    super#parse_child k v;
+    match k with
+      | "lines" -> let p=(new xml_int_parser "n") in p#parse v;l<-p#get_val
+      | _ -> ()    
+
+ 
+  method get_val=
+    let ofun()=
+      let st=theme#get_style nm in
+      let o=	new iface_text_edit_box id st#get_pattern_normal st#get_fnt st#get_foreground_color (video#f_size_w w) l in
 	super#init_object o;
 	o
     in

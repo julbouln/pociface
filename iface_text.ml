@@ -152,7 +152,8 @@ object(self)
   method get=str
 
   method length=UTF8.length str
-  method sub p l=String.sub str (self#byte_get p) (self#byte_get l)
+  method sub p l=
+    String.sub str (self#byte_get p) ((self#byte_get (p+l))-(self#byte_get p))
 
   method byte_get n=UTF8.nth str n
   method byte_length=String.length str
@@ -199,7 +200,7 @@ object(self)
       | KeySpace ->self#add_char " ";cur_pos<-cur_pos + 1;
 (*      | KeyChar ch->self#add_char ch *)
       | KeyBackspace ->if cur_pos>0 then (self#del_cur_char();cur_pos<-cur_pos - 1);
-      | KeyReturn -> ()
+      | KeyReturn -> self#add_char (String.make 1 '\n');cur_pos<-cur_pos + 1;
       | KeyShift -> ()
       | KeyUp -> ()
       | KeyDown -> ()
@@ -218,23 +219,102 @@ object(self)
 end;;
 
 
+
 exception Text_error of string;;
 
-(* FIXME must inherit graphic_generic_object *)
+(* FIXME : rename to graphic_text *)
 class text nid fnt (col:color)=
 object(self)
   inherit graphic_generic_object nid
   val mutable graphic=new graphic_generic_object nid
 
+  val mutable color=col
+  method get_color=color
+  method set_color c=color<-c
 
-  val mutable max_size=16
+  val mutable lines=1
+  method set_lines l=lines<-l
+  method get_lines=lines
+
+
+  val mutable max_size=100
   method set_max_size s=max_size<-s
   method get_max_size=max_size
 
   val mutable text=[""]
   method get_text=text
 
+  method lines_size (l:int)=
+    let si=ref 0 in
+    let i=ref 0 in
+    List.iter (
+      fun s->
+	let utf=new utf8 in
+	  utf#set s;
+	if !i<l then
+	  si:= !si+utf#length;
+	i:= !i+1;
+    ) text;
+      !si
+
+  method line_of_pos (p:int)=
+    let si=ref 0 in
+    let l=ref 0 in
+    let i=ref 0 in
+    List.iter (
+      fun s->
+	let utf=new utf8 in
+	  utf#set s;
+	  if p> !si && p<= !si+utf#length then
+	    l:= !i;
+	  
+	  si:= !si+utf#length;
+	  i:= !i+1;
+    ) text;
+      !l
+
+  (* NEW cut_string *)
+  method private cut_string2 s=
+    let utf=new utf8 in
+      utf#set s;
+      let cp=ref 0 and
+	  lp=ref 0 and
+	  cs=ref 0 and
+	  cl=ref 0 and
+	  str=ref "" in
+	
+      let a=DynArray.create() in
+	while !cl<lines && !cp<utf#length do
+	  while !cs<max_size && !cp<utf#length do
+	    (
+	      str:= (utf#sub !lp (!cp- !lp));
+	      let (cw,ch)=fnt#sizeof_text (!str) in 
+		cs:=cw;
+
+(*
+		if (String.length !str)>0 && String.get !str (utf#byte_get (!cp-1))='\n' then cs:=max_size;
+*)
+		cp:= !cp+1;
+	    )
+	  done;
+	  str:= (utf#sub !lp (!cp- !lp));
+	  DynArray.add a !str;
+	  cl:= !cl+1;
+	  lp:= !cp;
+	  cs:=0;
+	done;
+	DynArray.to_list a 
+(*	let sa=DynArray.create() in
+	  DynArray.iter 
+	    (
+	      fun s->
+		DynArray.add sa (split_delim (regexp "[\n]+") s);
+	    ) a;
+	  List.concat (DynArray.to_list sa)
+*)
+  (* OLD cut_string *)	  
   method private cut_string s=
+    (*    text<-split_delim (regexp "[\n]+") s; *)
     let a=DynArray.create() in
     let ss=UTF8.length s/max_size in
       for i=0 to ss do
@@ -244,8 +324,7 @@ object(self)
 	let cs=UTF8.nth s (i*max_size) and
 	    ce=UTF8.nth s ((i*max_size) + l) in
 	  try 
-	    let ns=String.sub s cs (ce-cs)
-in
+	    let ns=String.sub s cs (ce-cs) in
 	      if String.length ns>0 then
 		DynArray.add a ns
 	  with Invalid_argument x -> (raise (Text_error "cut_string"));
@@ -254,9 +333,9 @@ in
 	
 
   method set_text t=
-(*    text<-split_delim (regexp "[\n\t]+") t; *)
+
     text<-[""];
-    text<-self#cut_string t;
+    text<-self#cut_string2 t;
 
     graphic<-
     new graphic_dyn_object (id^"/text") (List.length self#get_text)
@@ -274,19 +353,6 @@ in
       done;
       rect#set_size (!cw) (!ch);
       
-  val mutable color=col
-  method get_color=color
-  method set_color c=color<-c
-
-(*    graphic#move x y; *)
-(*
-    for i=0 to (List.length self#get_text)-1 do
-      let ty=(graphic#get_rect#get_y) in
-	graphic#move (graphic#get_rect#get_x) (ty+(i*fnt#get_height));
-	graphic#move (graphic#get_rect#get_x) (ty);
-    done;
-*)
-(*  method get_rect=graphic#get_rect *)
 
   method put()=
     for i=0 to (List.length self#get_text)-1 do
@@ -298,52 +364,18 @@ in
 
 end;;
 
-
-(** text edit widget multiline *)
-class iface_text_edit_box rid bptile fnt color bw il=
-  object (self)
+class iface_text_box rid bptile fnt color bw il=
+object(self)
     inherit iface_object bw (fnt#get_height) as super
 
     val mutable bg=new iface_rgraphic_object rid bptile
-
-    val mutable lines=il
-    method private set_lines l=lines<-l
-    method private get_lines=lines
-
-    val mutable text=new text (rid^"/text_edit") fnt color
-    val mutable te=new text_edit
-   
-    method private get_textedit=te
-
-    method get_data_text=te#get_text;
-
-    method set_data_text t=
-      if t="" then
-	te#set_text ""; 
-      super#set_data_text (t); 
-      text#set_text (data_text);
-
-    method on_keypress e=
-      (match (parse_key e.ebut) with
-      | KeyBackspace -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyReturn -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyShift -> ()
-      | KeyUp -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyDown -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyLeft -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | KeyRight -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
-      | _ -> 
-	  if UTF8.length te#get_text< lines*text#get_max_size then
-	te#parse (parse_key e.ebut) (parse_unicode e.ey));
-
-      self#set_data_text (te#get_text); 
-
-
+    val mutable text=new text (rid^"/text_box") fnt color
 
     initializer
-      text#set_max_size (bw/8);
+      text#set_lines il;
+      text#set_max_size (bw);
       let (brw,brh)=bg#border_size in
-      rect<-new rectangle 0 0 (bw+(brw*2)) (fnt#get_height+(brh*2));
+      rect<-new rectangle 0 0 (bw+(brw*2)) (il*fnt#get_height+(brh*2));
       bg#resize rect#get_w rect#get_h;
 
     method move x y=
@@ -357,13 +389,12 @@ class iface_text_edit_box rid bptile fnt color bw il=
       let rx=x-self#get_rect#get_x  in
 	click()
 
-    val mutable cur_refresh=30
-    val mutable cur_c=0
+
 
     method private auto_lines()=
       let l=List.length text#get_text in
 	if l<>0 then
-	  lines<-l;
+	  text#set_lines l;
 
     method hide()=
       super#hide();
@@ -373,41 +404,86 @@ class iface_text_edit_box rid bptile fnt color bw il=
       super#show();
       bg#show();
 
+
+    method set_data_text t=
+      super#set_data_text (t); 
+      text#set_text (data_text);
+
     method put()=
 
       if showing==true then (	  
 	let (brw,brh)=bg#border_size in
-	rect#set_size (bw+(brw*2)) ((fnt#get_height*lines)+(brh*2));
+	rect#set_size (bw+(brw*2)) ((fnt#get_height*text#get_lines)+(brh*2));
 	bg#put();
-	if te#get_text<>"" then(
+	if data_text<>"" then (
 	  text#set_id self#get_id;
 	  text#put()
-      );	    
-	if focused  then (
-	    if cur_c>cur_refresh/2 then (
-	      let cu=tile_rect 1 (fnt#get_height + 4) color in
-	      let cline=te#get_cur_pos/text#get_max_size in
-	      let mline=(te#get_cur_pos - (cline*text#get_max_size)) in
-	      let tt=
-		let r=try List.nth text#get_text (cline) with Failure x->""  in
-		  if r<>"" then
-		    try 
-		      let u=(UTF8.nth r mline) in
-			if u>0 then
-			  String.sub r 0 u
-			else ""
-		    with Invalid_argument x -> (raise (Text_error ("put:"^string_of_int mline)));
-		  else "" in
-	      let (cw,ch)=fnt#sizeof_text tt in
-	      let (brw,brh)=bg#border_size in
-		tile_put cu (rect#get_x + cw +(brw)) (rect#get_y-2+(brh) + ch*(cline));
-		tile_free cu;
-	    );
-	    if cur_c=cur_refresh then cur_c<-0
-	    else cur_c<-cur_c+1
+	);
 
-	)
       )
+
+end;;
+
+(** text edit widget multiline *)
+class iface_text_edit_box rid bptile fnt color bw il=
+  object (self)
+    inherit iface_text_box rid bptile fnt color bw il as super
+    val mutable te=new text_edit
+   
+    method private get_textedit=te
+
+    method get_data_text=te#get_text;
+
+    method set_data_text t=
+      if t="" then
+	te#set_text ""; 
+      super#set_data_text (t);       
+
+    method on_keypress e=
+      (match (parse_key e.ebut) with
+      | KeyBackspace -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
+      | KeyReturn -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
+      | KeyShift -> ()
+      | KeyUp -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
+      | KeyDown -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
+      | KeyLeft -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
+      | KeyRight -> te#parse (parse_key e.ebut) (parse_unicode e.ey)
+      | _ -> 
+(*	  if UTF8.length te#get_text< lines*text#get_max_size then *)
+	    te#parse (parse_key e.ebut) (parse_unicode e.ey));
+
+      self#set_data_text (te#get_text); 
+
+
+    val mutable cur_refresh=30
+    val mutable cur_c=0
+
+    method put()=
+      super#put();
+      if showing=true then
+	if focused then (
+	  if cur_c>cur_refresh/2 then (
+	    let cu=tile_rect 1 (fnt#get_height + 4) color in
+	    let cline=text#line_of_pos te#get_cur_pos in
+	    let mline=(te#get_cur_pos - (text#lines_size cline)) in
+	    let tt=
+	      if te#get_cur_pos<=(text#lines_size (text#get_lines)) then
+	      (try
+	      let utf=new utf8 in
+		utf#set (List.nth text#get_text cline);
+		utf#sub 0 mline 
+	       with Failure x->"")
+	      else ""
+	       in
+
+	    let (cw,ch)=fnt#sizeof_text tt in
+	    let (brw,brh)=bg#border_size in
+	      tile_put cu (rect#get_x + cw +(brw)) (rect#get_y-2+(brh) + ch*(cline));
+	      tile_free cu;
+	  );
+	  if cur_c=cur_refresh then cur_c<-0
+	  else cur_c<-cur_c+1
+	)
 
   end;;
 
