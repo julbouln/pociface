@@ -564,6 +564,10 @@ object(self)
   inherit iface_button_icon f 32 32 w h as super
   val mutable lab=new iface_label_static fnt (0,0,0) label
 
+  method get_rect=
+    self#reset_size();
+    rect
+
   val mutable rval=r
   method get_rval=rval
 
@@ -609,30 +613,33 @@ object(self)
     selected#move (-32) (-32);
     self#reset_size();
 
+  method move x y=
+    vrect#set_position x y;
+    super#move x y
+
   method on_click x y=
     print_string "IFACE : toolbox click";print_newline();
     let t=ref (-1) in
       self#foreachi (
-	let f i obj=
+	fun i obj->
 	  if x > obj#get_vrect#get_x 
 	    && x < (obj#get_vrect#get_w + obj#get_vrect#get_x) 
 	    && y > obj#get_vrect#get_y 
 	    && y < (obj#get_vrect#get_h + obj#get_vrect#get_y) 
 	  then
-	    t:=i
-	in f
+	    t:=i	
       );
       if (!t)<>(-1) then
 	self#set_current !t;
 
+      print_int !t;print_newline();
     super#on_click x y;
 
     
   method put()=
-
     super#put();
-    self#foreachi (
-      fun i o->
+    self#foreach (
+      fun o->
 	o#put()
     );
     if self#is_showing then
