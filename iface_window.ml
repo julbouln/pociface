@@ -54,16 +54,26 @@ object(self)
 *)  
 
   method private init_size()=    
-    (* title part *)
+
+
+    let (cbw,cbh)=bggr#border_size in 
     let (tbw,tbh)=tigr#border_size in
-      tigr#resize (content#get_rect#get_w+(tbw*2)) (tilab#get_rect#get_h+(tbh*2));
-      tigr_min#resize (content#get_rect#get_w+(tbw*2)) (tilab#get_rect#get_h+(tbh*2));
-      
-      (* content part *)  
-      let (cbw,cbh)=bggr#border_size in 
+    let titot_w=(tilab#get_rect#get_w+ticl#get_rect#get_w+timin#get_rect#get_w+timax#get_rect#get_w) in
+      if content#get_rect#get_w>titot_w then (
 	bggr#resize (content#get_rect#get_w+(cbw*2)) (content#get_rect#get_h+(cbh*2));
-	
-	rect#set_size (bggr#get_rect#get_w) (bggr#get_rect#get_h+tigr#get_rect#get_h);
+	tigr#resize (content#get_rect#get_w+(tbw*2)) (tilab#get_rect#get_h+(tbh*2));
+	tigr_min#resize (content#get_rect#get_w+(tbw*2)) (tilab#get_rect#get_h+(tbh*2));
+      )
+      else
+	(
+	  bggr#resize (titot_w+(cbw*2)) (content#get_rect#get_h+(cbh*2));
+	  tigr#resize (titot_w+(tbw*2)) (tilab#get_rect#get_h+(tbh*2));
+	  tigr_min#resize (titot_w+(tbw*2)) (tilab#get_rect#get_h+(tbh*2));
+	  content#resize (titot_w) (content#get_rect#get_h);
+	);
+
+      rect#set_size (bggr#get_rect#get_w) (bggr#get_rect#get_h+tigr#get_rect#get_h)
+
 
   method move x y=
     super#move x y;
@@ -175,7 +185,7 @@ object(self)
     
     if clicked then
       (
-	self#set_layer (layer-1); 
+	self#set_layer (layer-2); 
 	clicked<-false;
       )
   method private drag x y=

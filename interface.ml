@@ -308,7 +308,9 @@ class interface_NEW=
 	p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser self#iface_get_object);
 	p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser self#iface_get_object);
 	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser self#iface_get_object);
+	p#parser_add "iface_color_toolbox" (fun()->new    xml_iface_color_toolbox_parser);
 	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
+
 	p#parse iface_xml;
         p#init self#iface_add_object self#get_interp
 

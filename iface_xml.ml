@@ -23,12 +23,14 @@ open Oxml;;
 open Medias;;
 open Olua;;
 
+
 open Iface_properties;;
 open Iface_object;;
 open Iface_text;;
 open Iface_button;;
 open Iface_container;;
 open Iface_menu;;
+open Iface_tool;;
 open Iface_window;;
 
 
@@ -341,9 +343,12 @@ object(self)
 	    print_string "non fixed_size!";print_newline()
 	  );	    
 *)
-	  o#resize w h;
 
-	super#init_object (o:>iface_object);
+	  o#resize w h;
+	  super#init_object (o:>iface_object);
+
+
+
 	(o:>iface_object)
     in
       (id,ofun)
@@ -382,6 +387,8 @@ object(self)
 	  o#set_halign (iprop_align (props#get_prop "halign"));
 	  o#set_fixed_size (iprop_bool (props#get_prop "fixed_size"));
 	  o#set_symmetric_size (iprop_bool (props#get_prop "symmetric_size"));
+
+	  o#resize w h;
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
@@ -515,6 +522,31 @@ object(self)
       (id,ofun)
 end;;
 
+
+(** iface xml toolbox parser *)
+class xml_iface_color_toolbox_parser=
+object(self)
+  inherit xml_iface_object_parser as super
+
+  val mutable file="none"
+
+  method parse_child k v=
+    super#parse_child k v;
+    match k with
+      | "file" -> let p=(new xml_string_parser "path") in p#parse v;file<-p#get_val    
+      | _ -> ()    
+ 
+  method get_val=
+    let vc=v_color_from_xml file in
+    let ofun()=
+      let o=
+	(new iface_color_toolbox id vc  (fun i->()) :>iface_object)
+      in
+	super#init_object o;
+	o
+    in
+      (id,ofun)
+end;;
 
 (** iface window parser *)
 class xml_iface_window_parser get_obj=
