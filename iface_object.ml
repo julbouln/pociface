@@ -26,6 +26,8 @@ open Vfs;;
 
 open Event_manager;;
 
+open Olua;;
+
 (** parent widget *)
 class iface_object w h=
 object(self)
@@ -99,8 +101,28 @@ object(self)
     method get_data1=data1
     method set_data_text d=data_text<-d
     method get_data_text=data_text
+
+(* lua *)
+    val mutable lua=""
+    method set_lua l=lua<-l
+    method get_lua=lua
+
+    method lua_register (interp:lua_interp)=
+      let lcode=(id^"={};\n") in
+	interp#parse lcode;();
+
+	interp#set_module_val id "on_click" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+	interp#set_module_val id "on_release" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+	
+	interp#set_module_val id "show" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
+	interp#set_module_val id "hide" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
+	interp#set_module_val id "move" (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#move);
+	interp#set_module_val id "set_data_text" (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
+	interp#set_module_val id "get_data_text" (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
+
+	interp#parse lua;();
 	  
-  end;;
+end;;
 
 (** graphic object widget *)
 class iface_graphic_object gr w h=

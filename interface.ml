@@ -66,7 +66,7 @@ class interface bgfile w h=
       interp#set_module_val "iface" "show_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#show_object);
       interp#set_module_val "iface" "hide_object" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
       interp#set_module_val "iface" "object_get_text" (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
-      
+
 
     val mutable focus="none"
 
@@ -185,8 +185,9 @@ class interface bgfile w h=
       let o=(self#get_object_at_position x y) in
       if 
 	o#is_showing==true then ( 
-	 ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ;
-	o#on_click x y;
+	  o#on_click x y;
+	  ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ;
+
       )
 
     method keypress e=
@@ -199,8 +200,9 @@ class interface bgfile w h=
     method release x y=
       let o=(self#get_object_at_position x y) in
       if o#is_showing==true then (
-	 ignore (interp#parse (o#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ;
-      o#on_release x y;
+	o#on_release x y;
+	ignore (interp#parse (o#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ;
+
   );
       let f i obj=
 	let ro=obj#get_release in
@@ -466,8 +468,9 @@ class interface_NEW=
       self#iface_foreach_object_at_position x y (
 	fun o->
       if o#is_showing==true then ( 
-	 ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ;
 	o#on_click x y;
+	ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ;
+
       )
       )
 
@@ -478,8 +481,8 @@ class interface_NEW=
       let f i obj=
 	if i=n then (
 	  if obj#is_showing==true then (
-	    ignore (interp#parse (obj#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ;
 	    obj#on_release x y;
+	    ignore (interp#parse (obj#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ;
 	  );
 	);
 	let ro=obj#get_release in

@@ -74,6 +74,7 @@ object (self)
     if show then
       o#show();
     o#move (video#f_size_w x) (video#f_size_h y);
+    o#set_lua lua;    
     
   method get_val=
     let ofun()=
@@ -436,11 +437,17 @@ object(self)
 		       List.iter (
 			 fun (n,l,o)->
 			   print_string ("IFACE_XML: add object "^n);print_newline();
-			   add_obj n (o());				 
+			   let no=o() in
 			   
+
+			     add_obj n (no);				 
+			     no#lua_register get_interp;
+(*			   
 			   let l2=(n^"={};\n")^l in
 			     print_string l2;
 			     get_interp#parse l2;()
+*)
+
 		       )ol;
 		       ) objs;
       
