@@ -320,6 +320,7 @@ class interface=
 	let o=self#iface_get_object self#get_focus in
 	  if o#is_showing==true then (
 	    o#on_keypress e;
+	    ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_keypress") [OLuaVal.String (string_of_key (fst e))])
 	  )
       )
 
@@ -328,6 +329,7 @@ class interface=
 	let o=self#iface_get_object self#get_focus in
 	  if o#is_showing==true then (
 	    o#on_keyrelease e;
+	    ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_keyrelease") [OLuaVal.String (string_of_key (fst e))])
 	  )
       )
     

@@ -111,7 +111,10 @@ object(self)
 	  p2=String.sub text (self#get_cur_utf_pos) (String.length text - self#get_cur_utf_pos) in
 	text<-String.concat "" [p1;p2]
     )
-  method set_text t=cur_pos<-0;text<-t
+  method set_text t=
+    cur_pos<-UTF8.length t;
+(*    cur_pos<-0; *)
+    text<-t
 
   method parse c u=
     match c with
@@ -232,8 +235,8 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
 
     method set_data_text t=
       super#set_data_text (t);       
-      if t="" then
-	te#set_text t;
+(*      if t="" then *)
+      te#set_text t;
 
     method on_keypress (k,utfk)=
       te#parse k utfk;

@@ -57,7 +57,10 @@ object(self)
   val mutable mouseout=(function()->())
     
 
-  method grab_focus=false
+  val mutable is_grab_focus=false
+  method set_grab_focus f=is_grab_focus<-f
+  method grab_focus=is_grab_focus
+
   val mutable focused=false    
   method set_focused f=focused<-f
     
@@ -115,6 +118,9 @@ object(self)
 
     lua#set_val (OLuaVal.String "on_mouseover") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
     lua#set_val (OLuaVal.String "on_mouseout") (OLuaVal.efunc (OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) (fun x y->()));
+
+    lua#set_val (OLuaVal.String "on_keypress") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) (fun s->()));
+    lua#set_val (OLuaVal.String "on_keyrelease") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) (fun s->()));
 
     lua#set_val (OLuaVal.String "show") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#show);
     lua#set_val (OLuaVal.String "hide") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#hide);
