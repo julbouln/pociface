@@ -667,7 +667,7 @@ object(self)
   method init (add_obj:string->iface_object->unit)=
     DynArray.iter (
       fun (n,o)->
-	print_string ("IFACE_XML: add object "^n);print_newline();
+(*	print_string ("IFACE_XML: add object "^n);print_newline(); *)
 	let no=o() in	  	  
 	  no#lua_init();
 	  add_obj n (no);

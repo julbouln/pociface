@@ -1,4 +1,3 @@
-open Core_generic;;
 open Core_font;;
 open Core_medias;;
 open Core_graphic;;
@@ -30,7 +29,7 @@ type iface_align=
 (** Property type *)
 type iface_prop=
   | IPropBool of bool
-  | IPropColor of color
+  | IPropColor of (int*int*int)
 
   | IPropAlign of iface_align
   | IPropPadding of int

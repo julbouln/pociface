@@ -19,13 +19,12 @@
 
 open Str;;
 
-
+open Ocommon;;
 open Oval;;
 open Olua;;
 open Oxml;;
 
-
-open Core_generic;;
+open Core_val;;
 open Core_rect;;
 open Core_video;;
 open Core_medias;;
@@ -442,7 +441,6 @@ end;;
 
 let xml_iface_stages_parser()=
   let p=xml_factory_stages_parser() in
-    print_string "add iface_stage parser";print_newline();
     p#parser_add "iface_stage" (fun()->new xml_iface_stage_parser);
     p;;
 
