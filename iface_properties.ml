@@ -1,8 +1,10 @@
-open Generic;;
-open Font;;
-open Medias;;
+open Core_generic;;
+open Core_font;;
+open Core_medias;;
+open Core_graphic;;
+
 open Oxml;;
-open Graphic;;
+
 
 (** Interface properties *)
 (** Properties are used in all interface object to configure them *)

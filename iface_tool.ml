@@ -18,11 +18,13 @@
 *)
 
 
-open Drawing;;
-open Medias;;
-open Graphic;;
-open Olua;;
+open Core_drawing;;
+open Core_medias;;
+open Core_graphic;;
+
 open Binding;;
+
+open Olua;;
 open Oval;;
 
 open Iface_object;;

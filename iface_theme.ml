@@ -1,8 +1,10 @@
-open Medias;;
-open Graphic;;
-open Font;;
-open Drawing;;
+open Core_medias;;
+open Core_graphic;;
+open Core_font;;
+open Core_drawing;;
+
 open Binding;;
+
 open Oxml;;
 
 open Iface_object;;

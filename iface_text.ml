@@ -17,18 +17,21 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-open Drawing;;
+
 open Str;;
 
 open Oval;;
 
-open Generic;;
-open Rect;;
-open Video;;
-open Medias;;
-open Graphic;;
-open Event;;
+open Core_generic;;
+open Core_rect;;
+open Core_video;;
+open Core_drawing;;
+open Core_medias;;
+open Core_graphic;;
+open Core_event;;
+
 open Binding;;
+
 open Iface_object;;
 
 

@@ -21,19 +21,22 @@ open Str;;
 
 
 open Oval;;
-open Generic;;
-open Rect;;
-open Video;;
-open Medias;;
-open Music;;
-open Event;;
-open Drawing;;
-open Binding;;
-open Stage;;
-
-open Otype;;
 open Olua;;
 open Oxml;;
+
+
+open Core_generic;;
+open Core_rect;;
+open Core_video;;
+open Core_medias;;
+open Core_event;;
+open Core_drawing;;
+open Core_stage;;
+open Core_type;;
+
+
+open Binding;;
+
 
 open Iface_object;;
 open Iface_container;;
@@ -410,7 +413,7 @@ object(self)
   
 end;;
 
-open Stage;;
+open Core_stage;;
 open Core_xml;;
 
 class xml_iface_stage_parser=

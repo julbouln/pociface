@@ -18,10 +18,10 @@
 *)
 
 
-open Rect;;
-open Medias;;
+open Core_rect;;
+open Core_medias;;
 
-open Event;;
+open Core_event;;
 
 open Iface_object;;
 open Iface_text;;

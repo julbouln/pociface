@@ -17,13 +17,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
-open Video;;
+open Core_main;;
+open Core_medias;;
 
 open Oxml;;
 open Oval;;
-open Medias;;
 open Olua;;
-
 
 open Iface_properties;;
 open Iface_object;;
@@ -95,7 +94,7 @@ object (self)
     o#move x y;
     if show then
       o#show();
-    o#move (video#f_size_w x) (video#f_size_h y);    
+    o#move (main#f_size_w x) (main#f_size_h y);    
     o#set_lua_script lua;
     
   method get_val=
@@ -206,7 +205,7 @@ object(self)
 	    (iprop_pattern (props#get_prop "pattern")) 
 	    (iprop_font (props#get_prop "font")) 
 	    (iprop_color (props#get_prop "foreground_color")) 
-	  (video#f_size_w w) in
+	  (main#f_size_w w) in
 	super#init_object o;
 	o
     in
@@ -236,7 +235,7 @@ object(self)
 	  (iprop_pattern (props#get_prop "pattern")) 
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
-	  (video#f_size_w w) l in
+	  (main#f_size_w w) l in
 	super#init_object o;
 	o
     in
@@ -267,7 +266,7 @@ object(self)
 	  (iprop_pattern (props#get_prop "pattern")) 
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
-	  (video#f_size_w w) l in
+	  (main#f_size_w w) l in
 	super#init_object o;
 	o
     in
@@ -288,7 +287,7 @@ object(self)
 	  (iprop_pattern (props#get_prop "pattern")) 
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
-	  (video#f_size_w w) in
+	  (main#f_size_w w) in
 	super#init_object o;
 	o
     in

@@ -18,9 +18,10 @@
 *)
 
 
-open Video;;
-open Event;;
-open Medias;;
+open Core_video;;
+open Core_event;;
+open Core_medias;;
+
 open Interface;;
 
 (** Interface event parser *)

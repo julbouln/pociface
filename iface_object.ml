@@ -18,11 +18,11 @@
 *)
 
 
-open Rect;;
-open Generic;;
-open Medias;;
-open Graphic;;
-open Event;;
+open Core_rect;;
+open Core_generic;;
+open Core_medias;;
+open Core_graphic;;
+open Core_event;;
 
 open Olua;;
 
