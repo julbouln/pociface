@@ -51,12 +51,16 @@ exception Iface_object_not_found of string;;
 (** main iface class *)
 class interface=
   object (self)
-    inherit [iface_object] generic_object_handler
+    inherit [iface_object] generic_object_handler as super
 
     inherit lua_object as lo
     method get_id="interface"
 
     val mutable canvas=new canvas
+
+    method clear()=
+      super#clear();
+      canvas#clear();
 
     method init_default_pattern()=
       drawing_vault#add_drawing_fun_from_list "default_pattern_fun"
@@ -377,6 +381,7 @@ object(self)
   method get_iface=iface
 
   method on_load()=
+    iface#clear();
     iface#init_from_xml file
 
   method on_loop()=
