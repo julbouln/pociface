@@ -1,11 +1,11 @@
-open Event;;
+open Core_event;;
 
-open Video;;
-open Medias;;
-open Cursors;;
+open Core_video;;
+open Core_medias;;
+open Core_cursor;;
 
-open Main;;
-open Stage;;
+open Core_main;;
+open Core_stage;;
 
 open Interface;;
 open Iface_event;;
@@ -41,7 +41,7 @@ main#set_scr_h 600;
 main#parse_args();
 main#medias_init();;
 
-video#set_def_size 800 600;;
+main#set_def_size 800 600;;
 
 let curs=new cursors 30 30 None;;
 
