@@ -100,7 +100,7 @@ let default_pattern bgcol=
 *)
 
 let default_pattern_clicked bgcol=
-  let dr=new poclow_drawing_object in
+  let dr=new default_drawing_object in
     dr#create 24 24 bgcol;
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
