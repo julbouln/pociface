@@ -604,6 +604,25 @@ end;;
 
 
 
+(** iface button parser *)
+class xml_iface_sprite_parser=
+object(self)
+  inherit xml_iface_object_parser as super
+
+  method get_val=
+    let ofun()=
+      let st=theme#get_style nm in
+	props#merge st;
+	let o=
+	  new iface_sprite 
+	in
+	super#init_object (o:>iface_object);
+	(o:>iface_object)
+    in
+
+      (id,ofun)
+end;;
+
 exception Xml_iface_parser_not_found of string;;
 
 (** iface parser *)

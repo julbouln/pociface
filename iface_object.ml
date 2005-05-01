@@ -186,4 +186,15 @@ object(self)
     )
 end;; 
 
+open Core_sprite;;
 
+class iface_sprite=
+object
+  inherit iface_object 0 0 as super
+  inherit sprite_object as spr
+
+  method lua_init()=
+    super#lua_init();
+    spr#lua_init();
+
+end
