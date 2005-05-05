@@ -188,12 +188,43 @@ end;;
 
 open Core_sprite;;
 
-class iface_sprite spr=
-object
+class iface_sprite (spr:sprite_object)=
+object(self)
   inherit iface_object 0 0 as super
 
+  initializer
+    rect#set_size spr#get_prect#get_w spr#get_prect#get_h;
+    self#hide()
+
+  method move x y=
+    super#move x y;
+    spr#jump x y 
+      
+
+  method show()=
+    spr#get_graphics#foreach_object (
+      fun gid gr->
+	gr#show()
+    )
+
+  method hide()=
+    spr#get_graphics#foreach_object (
+      fun gid gr->
+	gr#hide()
+    )
+
+
+  method put()=
+    spr#get_graphics#foreach_object (
+      fun gid gr->
+	gr#put()
+    )
+    
+
   method lua_init()=
+    ignore(spr#lua_init()); 
+    self#lua_parent_of "sprite" (spr:>lua_object);
+
     super#lua_init();
-    spr#lua_init();
 
 end

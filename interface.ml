@@ -120,6 +120,7 @@ class interface=
 	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser self#iface_get_object);
 	p#parser_add "iface_color_toolbox" (fun()->new    xml_iface_color_toolbox_parser);
 	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
+	p#parser_add "iface_sprite" (fun()->new xml_iface_sprite_parser);
 
 
 
@@ -444,7 +445,6 @@ object (self)
 (** object initial init *)
   method init_object o=
     o#set_lua_script (lua);
-
 
   method get_val=
     let ofun()=

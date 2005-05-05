@@ -727,25 +727,39 @@ end;;
 
 
 (** iface button parser *)
-(*
+
+open Core_sprite;;
+
 class xml_iface_sprite_parser=
 object(self)
   inherit xml_iface_object_parser as super
+
+  val mutable spr_parser=new xml_sprite_object_type_parser
+
+  method parse_child k v=
+    super#parse_child k v;
+    match k with
+      | "sprite" -> spr_parser#parse v
+      | _ ->()
+
 
   method get_val=
     let ofun()=
       let st=theme#get_style nm in
 	props#merge st;
-	let o=
-	  new iface_sprite 
-	in
+	let spr=((snd spr_parser#get_val)()) in
+	  ignore(spr#lua_init()); 
+(*	  self#lua_parent_of "sprite" (spr:>lua_object); *)
+	  let o=
+	    new iface_sprite spr
+	  in
 	super#init_object (o:>iface_object);
 	(o:>iface_object)
     in
 
       (id,ofun)
 end;;
-*)
+
 exception Xml_iface_parser_not_found of string;;
 
 (** iface parser *)
