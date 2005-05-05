@@ -104,10 +104,7 @@ class interface=
 
     val mutable iface_parser=new xml_iface_parser 
     method iface_add_xml_parser p f=iface_parser#parser_add p f
-
-    method init_from_xml f=
-(*      let iface_xml=new xml_node (Xml.parse_file f) in *)
-      let iface_xml=xml_node_from_file f in
+    method init_parser()=
       let p=iface_parser in
 	p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
 	p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
@@ -124,8 +121,18 @@ class interface=
 	p#parser_add "iface_color_toolbox" (fun()->new    xml_iface_color_toolbox_parser);
 	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
 
-	p#parse iface_xml;
-        p#init self#iface_add_object
+
+
+    method init_from_xml f=
+      let iface_xml=xml_node_from_file f in
+	self#init_parser();
+	iface_parser#parse iface_xml;
+        iface_parser#init self#iface_add_object
+
+    method init_from_xml_node iface_xml=
+	self#init_parser();
+	iface_parser#parse iface_xml;
+        iface_parser#init self#iface_add_object
 
     method lua_init()=
       lua#set_val (OLuaVal.String "set_focus") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
@@ -374,16 +381,17 @@ class interface=
 
 
 
-class iface_stage curs file=
+class iface_stage curs (v:xml_node)=
 object(self)
   inherit stage curs as super
 
-  val mutable iface=new interface
+  val mutable iface=new interface 
   method get_iface=iface
 
   method on_load()=
     iface#clear();
-    iface#init_from_xml file
+    iface#init_from_xml_node v
+(*    iface#init_from_xml file *)
 
   method on_loop()=
     super#on_loop();
@@ -426,9 +434,13 @@ class xml_iface_stage_parser=
 object (self)
   inherit xml_stage_parser as super
 
+  val mutable ifa=new xml_node
+
   method parse_child k v=
     super#parse_child k v;
-
+    match k with
+      | "iface" -> ifa<-v
+      | _ ->()
 (** object initial init *)
   method init_object o=
     o#set_lua_script (lua);
@@ -438,7 +450,7 @@ object (self)
     let ofun()=
       let o=
 	self#init_cursor();
-	new iface_stage curs (string_of_val (args_parser#get_val#get_val (`String "file")))
+	new iface_stage curs ifa
       in
 	self#init_object (o:>stage);
 	(o:>stage)	  
