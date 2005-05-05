@@ -188,10 +188,9 @@ end;;
 
 open Core_sprite;;
 
-class iface_sprite=
+class iface_sprite spr=
 object
   inherit iface_object 0 0 as super
-  inherit sprite_object as spr
 
   method lua_init()=
     super#lua_init();

@@ -21,6 +21,7 @@ open Value_val;;
 open Value_lua;;
 open Value_xmlparser;;
 
+open Core_val;;
 open Core_xml;;
 open Core_main;;
 open Core_medias;;
@@ -44,8 +45,6 @@ class xml_iface_object_parser=
 object (self)
   inherit xml_parser
     
-(** canvas layer *)
-  val mutable layer=0
 (** object type *)
   val mutable nm=""
   method get_type=nm
@@ -53,6 +52,10 @@ object (self)
 (** object unique id *)
   val mutable id=""
   method get_id=id
+
+(*
+(** canvas layer *)
+  val mutable layer=0
 (** object x position *)
   val mutable x=0
 (** object y position *)
@@ -63,6 +66,8 @@ object (self)
   val mutable h=0
 (** show this object? *)
   val mutable show=false
+*)
+
 (** lua code for this object *)
   val mutable lua=""
 (** object properties *)
@@ -77,20 +82,41 @@ object (self)
       | "type" ->nm<-v
       | "id" ->id<-v
       | _ -> ()
+
+  val mutable args_parser=new xml_val_ext_list_parser "args"
    
   method parse_child k v=
+    args_parser#parse_child k v;
     match k with
       | "properties" -> let p=(new xml_iface_props_parser) in p#parse v;props<-p#get_val
-      | "layer" -> let p=(new xml_int_parser "pos" ) in p#parse v;layer<-p#get_val;
+(*      | "layer" -> let p=(new xml_int_parser "pos" ) in p#parse v;layer<-p#get_val;
       | "size" -> let p=(new xml_size_parser ) in p#parse v;w<-p#get_w;h<-p#get_h;
       | "position" -> let p=(new xml_point_parser ) in p#parse v;x<-p#get_x;y<-p#get_y;
-      | "script" -> lua<-v#pcdata;
       | "show" -> show<-true
+*)
+      | "script" -> lua<-v#pcdata;
+
 
       | _ -> ()
 
 (** object initial init *)
   method init_object o=
+    let args=args_parser#get_val in
+    let layer=
+      if (args#is_val (`String "layer")) then
+	int_of_val (args#get_val (`String "layer")) 
+      else 0
+    and
+	(x,y)=
+      if (args#is_val (`String "position")) then
+	position_of_val (args#get_val (`String "position")) 
+      else (0,0)
+    and
+	show=
+      if (args#is_val (`String "show")) then
+	bool_of_val (args#get_val (`String "show")) 
+      else false 
+    in
     o#set_layer layer;
     o#move x y;
     if show then
@@ -100,6 +126,12 @@ object (self)
     
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      in
       let o=new iface_object w h in
 	self#init_object o;
 	o	  
@@ -137,16 +169,22 @@ class xml_iface_button_with_label_parser=
 object(self)
   inherit xml_iface_object_parser as super
  
-  val mutable txt=""
+(*  val mutable txt="" *)
 
   method parse_child k v=
     super#parse_child k v;
-    match k with
+(*    match k with
       | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
       | _ -> ()    
-
+*)
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let txt=
+	if (args#is_val (`String "text")) then
+	  string_of_val (args#get_val (`String "text")) 
+	else ""
+      in
       let st=theme#get_style nm in
 	props#merge st;
       let o=
@@ -167,16 +205,22 @@ class xml_iface_label_parser=
 object(self)
   inherit xml_iface_object_parser as super
  
-  val mutable txt=""
+(*  val mutable txt="" *)
 
   method parse_child k v=
     super#parse_child k v;
-    match k with
-      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
+(*    match k with
+      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val 
       | _ -> ()    
-
+*)
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let txt=
+	if (args#is_val (`String "text")) then
+	  string_of_val (args#get_val (`String "text")) 
+	else ""
+      in
       let st=theme#get_style nm in
 	props#merge st;
       let o=
@@ -199,6 +243,12 @@ object(self)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      in
       let st=theme#get_style nm in
 	props#merge st;
       let o=	
@@ -218,19 +268,38 @@ class xml_iface_text_box_parser=
 object(self)
   inherit xml_iface_object_parser as super
 
+(*
   val mutable l=1
   val mutable text=""
-
+*)
   method parse_child k v=
     super#parse_child k v;
-    match k with
+(*    match k with
       | "lines" -> let p=(new xml_int_parser "n") in p#parse v;l<-p#get_val
       | "text" -> text<-v#pcdata
       | _ -> ()    
-
+*)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else
+	  (0,0)
+      and
+	  text=
+	if (args#is_val (`String "text")) then
+	  text_of_val (args#get_val (`String "text")) 
+	else ""
+      and
+	  l=
+	if (args#is_val (`String "size")) then			
+	  int_of_val (args#get_val (`String "lines")) 
+	else 1
+      in
+
       let st=theme#get_style nm in
 	props#merge st;
       let o=
@@ -256,13 +325,25 @@ object(self)
 
   method parse_child k v=
     super#parse_child k v;
-    match k with
+(*    match k with
       | "lines" -> let p=(new xml_int_parser "n") in p#parse v;l<-p#get_val
       | _ -> ()    
-
+*)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      and
+	  l=
+	  if (args#is_val (`String "lines")) then
+	    int_of_val (args#get_val (`String "lines")) 
+	  else 1
+      in
+
       let st=theme#get_style nm in
 	props#merge st;
       let o=	
@@ -284,6 +365,13 @@ object(self)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      in
+
       let st=theme#get_style nm in
 	props#merge st;
       let o=
@@ -303,16 +391,23 @@ class xml_iface_graphic_object_parser=
 object(self)
   inherit xml_iface_object_parser as super
 
-  val mutable file="none"
+(*  val mutable file="none" *)
 
   method parse_child k v=
     super#parse_child k v;
-    match k with
+(*    match k with
       | "file" -> let p=(new xml_string_parser "path") in p#parse v;file<-p#get_val    
       | _ -> ()    
- 
+*)
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      and
+	  file=string_of_val (args#get_val (`String "file")) in
       let o=new iface_graphic_file_object file w h in
 	super#init_object o;
 	o
@@ -335,6 +430,13 @@ object(self)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      in
+	
       let st=theme#get_style nm in
 	props#merge st;
       let o=new iface_vcontainer 
@@ -386,6 +488,13 @@ object(self)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      in
+
       let st=theme#get_style nm in
 	props#merge st;
       let o=new iface_hcontainer 
@@ -484,6 +593,9 @@ object(self)
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let layer=int_of_val (args#get_val (`String "layer")) in
+
       let st=theme#get_style nm in
 	props#merge st;
       let o=
@@ -519,7 +631,8 @@ object(self)
  
   method get_val=
     let ofun()=
-
+      let args=args_parser#get_val in
+      let layer=int_of_val (args#get_val (`String "layer")) in
       let st=theme#get_style nm in
 	props#merge st;
       let o=new iface_menubar id 
@@ -545,17 +658,20 @@ class xml_iface_color_toolbox_parser=
 object(self)
   inherit xml_iface_object_parser as super
 
-  val mutable file="none"
+(*  val mutable file="none" *)
 
   method parse_child k v=
     super#parse_child k v;
-    match k with
+(*    match k with
       | "file" -> let p=(new xml_string_parser "path") in p#parse v;file<-p#get_val    
       | _ -> ()    
- 
+*)
   method get_val=
+      let args=args_parser#get_val in
+      let  file=string_of_val (args#get_val (`String "file")) in
     let vc=v_color_from_xml file in
     let ofun()=
+
       let o=
 	(new iface_color_toolbox id vc  (fun i->()) :>iface_object)
       in
@@ -571,17 +687,23 @@ object(self)
   inherit xml_iface_object_parser as super
 
   val mutable cid=""
-  val mutable txt=""
+(*  val mutable txt="" *)
   method parse_child k v=
     super#parse_child k v;
     match k with
       | "iface_object" -> let p=(new xml_string_parser "id") in p#parse v;cid<-p#get_val
-      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
+(*      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val *)
       | _ -> ()    
 
  
   method get_val=
     let ofun()=
+      let args=args_parser#get_val in
+      let  txt=
+	if (args#is_val (`String "text")) then
+	  string_of_val (args#get_val (`String "text"))
+	else ""
+      in
       let st=theme#get_style nm in
 	props#merge st;
       let o=	
@@ -605,6 +727,7 @@ end;;
 
 
 (** iface button parser *)
+(*
 class xml_iface_sprite_parser=
 object(self)
   inherit xml_iface_object_parser as super
@@ -622,7 +745,7 @@ object(self)
 
       (id,ofun)
 end;;
-
+*)
 exception Xml_iface_parser_not_found of string;;
 
 (** iface parser *)

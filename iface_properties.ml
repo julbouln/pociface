@@ -36,6 +36,7 @@ type iface_prop=
   | IPropAlign of iface_align
   | IPropPadding of int
   | IPropMargin of int
+
   | IPropGraphic of (unit-> graphic_object)
   | IPropPattern of (unit -> graphic_pattern)
   | IPropFont of (font_t)
