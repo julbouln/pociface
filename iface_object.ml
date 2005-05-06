@@ -38,6 +38,11 @@ object(self)
   initializer
     rect#set_size w h
 
+  method add_graphic (n:string) (gr:graphic_object)=()
+  method get_graphic (n:string)=(None:graphic_object option)
+  method delete_graphic (n:string)=()
+
+
   val mutable parent=None
   method set_parent (p:iface_object option)=parent<-p
   method get_parent=parent
@@ -193,8 +198,15 @@ object(self)
   inherit iface_object 0 0 as super
 
   initializer
+    spr#set_id "sprite";
     rect#set_size spr#get_prect#get_w spr#get_prect#get_h;
     self#hide()
+
+  method add_graphic (n:string) (gr:graphic_object)=
+    spr#add_graphic n gr;
+
+  method get_graphic (n:string)=Some (spr#get_graphic n)
+  method delete_graphic (n:string)=spr#delete_graphic n
 
   method move x y=
     super#move x y;
@@ -215,10 +227,20 @@ object(self)
 
 
   method put()=
-    spr#get_graphics#foreach_object (
-      fun gid gr->
-	gr#put()
-    )
+      let s p1 p2=
+	let (k1,o1)=p1 and
+	    (k2,o2)=p2 in
+	  (match o1#get_layer with
+	    | x when x < o2#get_layer -> -1
+	    | x when x = o2#get_layer -> 0
+	    | x when x > o2#get_layer -> 1
+	    | _ -> 0)
+      in
+    spr#get_graphics#foreach_object_sorted s
+      (
+	fun gid gr->
+	  gr#put()
+      )
     
 
   method lua_init()=

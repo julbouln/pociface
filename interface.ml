@@ -380,7 +380,7 @@ class interface=
 	)
   end;;
 
-
+open Core_graphic;;
 
 class iface_stage curs (v:xml_node)=
 object(self)
@@ -388,6 +388,18 @@ object(self)
 
   val mutable iface=new interface 
   method get_iface=iface
+
+  (** graphic echange *)
+  method get_graphic (id:string) (gid:string)=
+    let o=iface#get_object id in
+      o#get_graphic gid
+  method add_graphic (id:string) (gid:string) (go:graphic_object)=
+    let o=iface#get_object id in
+      o#add_graphic gid go
+  method delete_graphic (id:string) (gid:string)=
+    let o=iface#get_object id in
+      o#delete_graphic gid
+
 
   method on_load()=
     iface#clear();
