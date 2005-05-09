@@ -53,21 +53,6 @@ object (self)
   val mutable id=""
   method get_id=id
 
-(*
-(** canvas layer *)
-  val mutable layer=0
-(** object x position *)
-  val mutable x=0
-(** object y position *)
-  val mutable y=0
-(** object width size *)
-  val mutable w=0
-(** object height size *)
-  val mutable h=0
-(** show this object? *)
-  val mutable show=false
-*)
-
 (** lua code for this object *)
   val mutable lua=""
 (** object properties *)
@@ -89,11 +74,6 @@ object (self)
     args_parser#parse_child k v;
     match k with
       | "properties" -> let p=(new xml_iface_props_parser) in p#parse v;props<-p#get_val
-(*      | "layer" -> let p=(new xml_int_parser "pos" ) in p#parse v;layer<-p#get_val;
-      | "size" -> let p=(new xml_size_parser ) in p#parse v;w<-p#get_w;h<-p#get_h;
-      | "position" -> let p=(new xml_point_parser ) in p#parse v;x<-p#get_x;y<-p#get_y;
-      | "show" -> show<-true
-*)
       | "script" -> lua<-v#pcdata;
 
 
@@ -268,17 +248,8 @@ class xml_iface_text_box_parser=
 object(self)
   inherit xml_iface_object_parser as super
 
-(*
-  val mutable l=1
-  val mutable text=""
-*)
   method parse_child k v=
     super#parse_child k v;
-(*    match k with
-      | "lines" -> let p=(new xml_int_parser "n") in p#parse v;l<-p#get_val
-      | "text" -> text<-v#pcdata
-      | _ -> ()    
-*)
  
   method get_val=
     let ofun()=
@@ -295,7 +266,7 @@ object(self)
 	else ""
       and
 	  l=
-	if (args#is_val (`String "size")) then			
+	if (args#is_val (`String "lines")) then			
 	  int_of_val (args#get_val (`String "lines")) 
 	else 1
       in
@@ -321,14 +292,8 @@ class xml_iface_text_edit_box_parser=
 object(self)
   inherit xml_iface_object_parser as super
 
-  val mutable l=1
-
   method parse_child k v=
     super#parse_child k v;
-(*    match k with
-      | "lines" -> let p=(new xml_int_parser "n") in p#parse v;l<-p#get_val
-      | _ -> ()    
-*)
  
   method get_val=
     let ofun()=
@@ -391,14 +356,9 @@ class xml_iface_graphic_object_parser=
 object(self)
   inherit xml_iface_object_parser as super
 
-(*  val mutable file="none" *)
-
   method parse_child k v=
     super#parse_child k v;
-(*    match k with
-      | "file" -> let p=(new xml_string_parser "path") in p#parse v;file<-p#get_val    
-      | _ -> ()    
-*)
+
   method get_val=
     let ofun()=
       let args=args_parser#get_val in
@@ -407,7 +367,10 @@ object(self)
 	  size_of_val (args#get_val (`String "size")) 
 	else (0,0)
       and
-	  file=string_of_val (args#get_val (`String "file")) in
+	  file=
+	if (args#is_val (`String "file")) then
+	  string_of_val (args#get_val (`String "file")) 
+	else "" in
       let o=new iface_graphic_file_object file w h in
 	super#init_object o;
 	o
