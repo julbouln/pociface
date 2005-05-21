@@ -528,7 +528,7 @@ let to_menu mt layer get_obj=
 			fun cm->
 			  DynArray.add a (xmlmenu_to_menu cm)
 		      ) m;
-		      let l=DynArray.to_list a in List.rev l
+		      let l=DynArray.to_list a in l(*List.rev l*)
 		   )
 	| IMenuEntry n->
 (*	    print_string ("parse MENUENTRY "^n);print_newline();*)
@@ -606,7 +606,7 @@ object(self)
 	    fun menu ->
 	      DynArray.add a (to_menu menu layer get_obj)
 	  ) menu_t_arr;
-	    let l=DynArray.to_list a in List.rev l
+	    let l=DynArray.to_list a in l(*List.rev l*)
 
 	) in
 	super#init_object (o:>iface_object);

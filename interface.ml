@@ -364,6 +364,7 @@ class interface=
 			o#move (ox + x) (oy + y)
 		   );
       
+
     method update()=      
       canvas#refresh 0 0 0 0;
 
@@ -408,6 +409,9 @@ object(self)
 
   method on_loop()=
     super#on_loop();
+
+
+  method on_loop_graphic()=
     iface#update();
 
   method ev_parser e=
