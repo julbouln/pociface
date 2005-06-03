@@ -120,6 +120,7 @@ class interface=
 	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser self#iface_get_object);
 	p#parser_add "iface_color_toolbox" (fun()->new    xml_iface_color_toolbox_parser);
 	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
+	p#parser_add "iface_window_manager" (fun()->new xml_iface_window_manager_parser self#iface_get_object);
 	p#parser_add "iface_sprite" (fun()->new xml_iface_sprite_parser);
 
 

@@ -689,6 +689,65 @@ end;;
 
 
 
+(** iface vcontainer parser *)
+class xml_iface_window_manager_parser get_obj=
+object(self)
+  inherit xml_iface_object_parser as super
+
+  val mutable container=Array.create 1 "none"
+
+  method parse_child k v=
+    super#parse_child k v;
+    match k with
+      | "container" -> let p=(new xml_stringlist_parser "iface_window" (fun()->new xml_string_parser "id")) in p#parse v;container<-p#get_array
+      | _ -> ()    
+ 
+  method get_val=
+    let ofun()=
+      let args=args_parser#get_val in
+      let (w,h)=
+	if (args#is_val (`String "size")) then
+	  size_of_val (args#get_val (`String "size")) 
+	else (0,0)
+      in
+	
+(*      let st=theme#get_style nm in
+	props#merge st; *)
+      let o=new iface_window_manager
+	      (
+		let a=DynArray.create() in
+		  Array.iter
+		    (
+			fun n->
+			  let co=(get_obj n) in
+			  DynArray.add a co
+		    ) container;
+		  DynArray.to_array a
+		      
+	      ) in
+(*	  o#set_valign (iprop_align (props#get_prop "valign"));
+	  o#set_halign (iprop_align (props#get_prop "halign"));
+	  o#set_fixed_size (iprop_bool (props#get_prop "fixed_size"));
+	  o#set_symmetric_size (iprop_bool (props#get_prop "symmetric_size"));
+*)
+(*
+	  if (iprop_bool (props#get_prop "fixed_size")) then (
+	    print_string "fixed_size!";print_newline()
+	  ) else (
+	    print_string "non fixed_size!";print_newline()
+	  );	    
+*)
+
+	  o#resize w h;
+	  super#init_object (o:>iface_object);
+
+
+
+	(o:>iface_object)
+    in
+      (id,ofun)
+end;;
+
 (** iface button parser *)
 
 open Core_sprite;;

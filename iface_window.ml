@@ -147,7 +147,7 @@ object(self)
   method on_click x y=
     if tigr#get_vrect#is_position x y then (
       crect#set_position (x-rect#get_x) (y-rect#get_y);
-      self#set_layer (layer+2);
+(*      self#set_layer (layer+2); *)
       clicked<-true;
     );
 
@@ -187,7 +187,7 @@ object(self)
     
     if clicked then
       (
-	self#set_layer (layer-2); 
+(*	self#set_layer (layer-2);  *)
 	clicked<-false;
       )
   method private drag x y=
@@ -203,3 +203,41 @@ object(self)
 
 end;;
 
+
+class iface_window_manager wins=
+object(self)
+  inherit [iface_object] iface_container (wins) as super
+  
+  val mutable focused_win=None
+
+  val mutable max_layer=Array.length wins
+  val mutable cur_layer=0
+
+  method put()=
+   (match focused_win with
+      | Some oid->
+	  self#foreach_object (
+	    fun id obj->
+	      if id=oid then
+		obj#set_layer(layer+max_layer+1)
+	      else
+		obj#set_layer (obj#get_layer - 1);
+	      
+	  )
+      | None -> ());
+    super#put();
+
+    method on_click x y=
+      focused_win<-None;
+      self#foreach_object(
+	fun id obj->
+	    if obj#get_vrect#is_position x y then (
+	      focused_win<-Some id; 
+	  )
+      );
+      super#on_click x y;
+
+  initializer
+    showing<-true;
+
+end;;
