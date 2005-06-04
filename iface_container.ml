@@ -215,6 +215,9 @@ class ['a] iface_container (c:'a array)=
 	  ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
       ) c
 
+    method add_child (o:'a)=
+       ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
+
     val mutable valign=IAlignMiddle
     val mutable halign=IAlignMiddle
     val mutable fixed_size=false

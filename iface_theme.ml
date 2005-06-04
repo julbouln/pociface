@@ -264,19 +264,4 @@ object
 
 end;;
 
-(** xml iface theme parser *)
-class xml_iface_theme_parser=
-object(self)
-  inherit [iface_properties] xml_stringhash_parser "iface_style" (fun()->new xml_iface_style_parser)
 
-  method get_val=new iface_theme self#get_hash
-
-end;;
-
-
-let iface_theme_from_xml f=
-(*  let iface_xml=new xml_node (Xml.parse_file f) in *)
-  let iface_xml=xml_node_from_file f in
-  let p=new xml_iface_theme_parser in
-    p#parse iface_xml;
-    p#get_val;;

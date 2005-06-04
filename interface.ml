@@ -33,7 +33,7 @@ open Core_drawing;;
 open Core_stage;;
 open Core_type;;
 open Core_cursor;;
-
+open Core_type;;
 
 open Binding;;
 
@@ -49,6 +49,11 @@ open Iface_xml;;
 
 exception Iface_object_not_found of string;;
 
+class iface_types=
+object(self)
+  inherit [iface_object] obj_types
+end;;
+
 (** main iface class *)
 class interface=
   object (self)
@@ -56,6 +61,8 @@ class interface=
 
     inherit lua_object as lo
     method get_id="interface"
+
+    val mutable types=new iface_types
 
     val mutable canvas=new canvas
 
@@ -103,9 +110,8 @@ class interface=
       self#lua_init();()
 
     val mutable iface_parser=new xml_iface_parser 
-    method iface_add_xml_parser p f=iface_parser#parser_add p f
-    method init_parser()=
-      let p=iface_parser in
+
+    method init_all_parser p=
 	p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
 	p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
 	p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
@@ -123,30 +129,41 @@ class interface=
 	p#parser_add "iface_window_manager" (fun()->new xml_iface_window_manager_parser self#iface_get_object);
 	p#parser_add "iface_sprite" (fun()->new xml_iface_sprite_parser);
 
-
+    method init_parser()=      
+      let p=iface_parser in
+	p#init_parsers self#init_all_parser
 
     method init_from_xml f=
       let iface_xml=xml_node_from_file f in
 	self#init_parser();
 	iface_parser#parse iface_xml;
-        iface_parser#init self#iface_add_object
+        iface_parser#init types#add_object_type self#iface_add_object
 
     method init_from_xml_node iface_xml=
 	self#init_parser();
 	iface_parser#parse iface_xml;
-        iface_parser#init self#iface_add_object
+        iface_parser#init types#add_object_type self#iface_add_object
 
     method lua_init()=
       lua#set_val (OLuaVal.String "set_focus") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#set_focus);
       lua#set_val (OLuaVal.String "show_object") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#show_object);
       lua#set_val (OLuaVal.String "hide_object") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
       lua#set_val (OLuaVal.String "object_get_text") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
+      lua#set_val (OLuaVal.String "add_object_from_type") (OLuaVal.efunc (OLuaVal.string **-> OLuaVal.string **-> OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#iface_add_object_from_type);
       lo#lua_init()
 
     val mutable focus="none"
 
 
 (** general iface functions *)
+
+(* NEW : add iface_object from type *)
+    method iface_add_object_from_type (name:string) (t:string) x y=
+      let ot=types#get_object_type t in
+	self#iface_add_object name (ot);
+	let o=self#get_object name in
+	  o#lua_init();
+	  o#move x y
 
     method iface_add_object (name:string) (obj:iface_object)=
 

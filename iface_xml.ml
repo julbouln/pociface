@@ -813,7 +813,24 @@ object(self)
 end;;
 *)
 
-class xml_iface_parser=
+(** xml iface theme parser *)
+class xml_iface_theme_parser=
+object(self)
+  inherit [iface_properties] xml_stringhash_parser "iface_style" (fun()->new xml_iface_style_parser)
+
+  method get_val=new iface_theme self#get_hash
+
+end;;
+
+
+let iface_theme_from_xml f=
+(*  let iface_xml=new xml_node (Xml.parse_file f) in *)
+  let iface_xml=xml_node_from_file f in
+  let p=new xml_iface_theme_parser in
+    p#parse iface_xml;
+    p#get_val;;
+
+class xml_iface_objects_generic_parser=
 object(self)
   inherit xml_parser
 
@@ -829,12 +846,20 @@ object(self)
 	 Not_found -> raise (Xml_iface_parser_not_found n))
 
   val mutable theme=new iface_theme (Hashtbl.create 2)
+  method set_theme t=theme<-t
   method get_style s=theme#get_style s    
   
-  method parse_attr k v=
-    match k with
+  method parse_attr k v=()
+(*    match k with
       | "theme" -> theme<-iface_theme_from_xml v
       | _ -> ()
+*)
+  method parse_child k v=()      
+end;;
+
+class xml_iface_objects_parser=
+object(self)
+  inherit xml_iface_objects_generic_parser
 
   method parse_child k v=
     match k with
@@ -859,3 +884,54 @@ object(self)
       
 end;;
 
+class xml_iface_objects_types_parser=
+object(self)
+  inherit xml_iface_objects_generic_parser
+
+  method parse_child k v=
+    match k with
+      | "iface_object_type" -> let p=new xml_iface_object_parser in p#parse v;
+	  if self#parser_is p#get_type then
+	    let sp=(self#parser_get p#get_type)() in
+	      sp#set_theme theme;
+	      sp#parse v;
+	      DynArray.add objs sp#get_val
+      | _ ->()
+
+  method init (add_obj_type:string->(unit->iface_object)->unit)=
+    
+    DynArray.iter (
+      fun (n,o)->
+(*	print_string ("IFACE_XML: add object "^n);print_newline(); *)
+	  add_obj_type n o;
+
+    ) (DynArray.of_list (List.rev (DynArray.to_list objs)));
+      
+end;;
+
+class xml_iface_parser=
+object
+  inherit xml_parser
+  val mutable objs_parser=new xml_iface_objects_parser
+  val mutable objs_types_parser=new xml_iface_objects_types_parser
+  val mutable theme_parser=new xml_iface_theme_parser 
+
+  method init_parsers (pf:xml_iface_objects_generic_parser->unit)=
+    pf (objs_parser:>xml_iface_objects_generic_parser);
+    pf (objs_types_parser:>xml_iface_objects_generic_parser);
+
+  method parse_attr k v=()
+  method parse_child k v=
+    match k with
+      | "iface_theme" -> 
+	  theme_parser#parse v;
+	  objs_parser#set_theme theme_parser#get_val;
+	  objs_types_parser#set_theme theme_parser#get_val;
+      | "iface_objects" -> objs_parser#set_theme theme_parser#get_val;objs_parser#parse v;
+      | "iface_object_types" -> objs_types_parser#parse v;
+      | _ ->()
+
+  method init (add_obj_type:string->(unit->iface_object)->unit) (add_obj:string->iface_object->unit)=
+    objs_parser#init add_obj;
+    objs_types_parser#init add_obj_type;
+end;;

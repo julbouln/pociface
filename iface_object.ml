@@ -38,6 +38,7 @@ object(self)
   initializer
     rect#set_size w h
 
+
   method add_graphic (n:string) (gr:graphic_object)=()
   method get_graphic (n:string)=(None:graphic_object option)
   method delete_graphic (n:string)=()
