@@ -55,9 +55,7 @@ object(self)
   method resize w h=
 *)  
 
-  method private init_size()=    
-
-
+  method private init_size()=
     let (cbw,cbh)=bggr#border_size in 
     let (tbw,tbh)=tigr#border_size in
     let titot_w=(tilab#get_rect#get_w+ticl#get_rect#get_w+timin#get_rect#get_w+timax#get_rect#get_w) in
@@ -78,6 +76,7 @@ object(self)
 
 
   method move x y=
+    self#init_size();
     super#move x y;
     
     (* title part *)
@@ -95,6 +94,7 @@ object(self)
     let (cbw,cbh)=bggr#border_size in      
       bggr#move x (y+tigr#get_rect#get_h-cbh);
       content#move (x+cbw) (y+tigr#get_rect#get_h);
+      
 
 
 

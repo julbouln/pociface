@@ -24,6 +24,7 @@ open Iface_properties;;
 
 (** Interface containers *)
 
+(* DEPRECATED *)
 (** container object *)
 class iface_container2 c=
   object (self)
@@ -214,10 +215,7 @@ class ['a] iface_container (c:'a array)=
 	  
 	  ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
       ) c
-
-    method add_child (o:'a)=
-       ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
-
+	
     val mutable valign=IAlignMiddle
     val mutable halign=IAlignMiddle
     val mutable fixed_size=false
@@ -408,7 +406,8 @@ class ['a] iface_vcontainer c=
 	(
 	  super#resize w h;
 
-	  let ih=h/(Array.length c) in
+	  
+	  let ih=h/(self#objs_count) in
 
 	    self#foreachi
 	      (
@@ -473,6 +472,7 @@ class ['a] iface_vcontainer c=
 
   end;;
 
+
 (** horizontal container *)
 class ['a] iface_hcontainer c=
   object (self)
@@ -487,7 +487,7 @@ class ['a] iface_hcontainer c=
 	(
 	  super#resize w h;
 
-	  let iw=w/(Array.length c) in
+	  let iw=w/(self#objs_count) in
 
 	    self#foreachi
 	      (
@@ -551,3 +551,28 @@ class ['a] iface_hcontainer c=
 
   end;;
 
+
+class iface_object_vcontainer c=
+object(self)
+  inherit [iface_object] iface_vcontainer c
+
+
+    method add_child (o:iface_object)=
+      ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
+      o#set_parent (Some (self:>iface_object));
+      o#set_layer (self#get_layer+1);
+      self#reset_size(); 
+	
+end
+
+class iface_object_hcontainer c=
+object(self)
+  inherit [iface_object] iface_hcontainer c
+
+    method add_child (o:iface_object)=
+      ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
+      o#set_parent (Some (self:>iface_object));
+      o#set_layer (self#get_layer+1);
+      self#reset_size(); 
+
+end

@@ -402,7 +402,7 @@ object(self)
 	
       let st=theme#get_style nm in
 	props#merge st;
-      let o=new iface_vcontainer 
+      let o=new iface_object_vcontainer 
 	      (
 		let a=DynArray.create() in
 		  Array.iter
@@ -460,7 +460,7 @@ object(self)
 
       let st=theme#get_style nm in
 	props#merge st;
-      let o=new iface_hcontainer 
+      let o=new iface_object_hcontainer 
 	      (
 		let a=DynArray.create() in
 		  Array.iter
@@ -890,7 +890,9 @@ object(self)
 
   method parse_child k v=
     match k with
-      | "iface_object_type" -> let p=new xml_iface_object_parser in p#parse v;
+      | "iface_object_type" -> 
+	  let p=new xml_iface_object_parser in p#parse v;
+	  print_string ("IFACE_XML: parse object type "^p#get_id);print_newline(); 
 	  if self#parser_is p#get_type then
 	    let sp=(self#parser_get p#get_type)() in
 	      sp#set_theme theme;
@@ -902,7 +904,7 @@ object(self)
     
     DynArray.iter (
       fun (n,o)->
-(*	print_string ("IFACE_XML: add object "^n);print_newline(); *)
+	print_string ("IFACE_XML: add object type "^n);print_newline(); 
 	  add_obj_type n o;
 
     ) (DynArray.of_list (List.rev (DynArray.to_list objs)));
@@ -924,11 +926,16 @@ object
   method parse_child k v=
     match k with
       | "iface_theme" -> 
+	  print_string ("IFACE_XML: parse theme");print_newline(); 
 	  theme_parser#parse v;
 	  objs_parser#set_theme theme_parser#get_val;
 	  objs_types_parser#set_theme theme_parser#get_val;
-      | "iface_objects" -> objs_parser#set_theme theme_parser#get_val;objs_parser#parse v;
-      | "iface_object_types" -> objs_types_parser#parse v;
+      | "iface_objects" -> 
+	  print_string ("IFACE_XML: parse objects");print_newline(); 
+	  objs_parser#parse v;
+      | "iface_object_types" -> 
+	  print_string ("IFACE_XML: parse object types ");print_newline(); 
+	  objs_types_parser#parse v;
       | _ ->()
 
   method init (add_obj_type:string->(unit->iface_object)->unit) (add_obj:string->iface_object->unit)=

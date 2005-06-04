@@ -150,6 +150,8 @@ class interface=
       lua#set_val (OLuaVal.String "hide_object") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#hide_object);
       lua#set_val (OLuaVal.String "object_get_text") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.string) self#object_get_text);
       lua#set_val (OLuaVal.String "add_object_from_type") (OLuaVal.efunc (OLuaVal.string **-> OLuaVal.string **-> OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#iface_add_object_from_type);
+
+      lua#set_val (OLuaVal.String "add_object_from_type_to") (OLuaVal.efunc (OLuaVal.string **-> OLuaVal.string **-> OLuaVal.string **->> OLuaVal.unit) self#iface_add_object_from_type_to);
       lo#lua_init()
 
     val mutable focus="none"
@@ -164,6 +166,14 @@ class interface=
 	let o=self#get_object name in
 	  o#lua_init();
 	  o#move x y
+
+    method iface_add_object_from_type_to (name:string) (t:string) (c:string)=
+      let ot=types#get_object_type t in
+	self#iface_add_object name (ot);
+	let o=self#get_object name in
+	  o#lua_init();
+	let co=self#get_object c in
+	  co#add_child o
 
     method iface_add_object (name:string) (obj:iface_object)=
 
@@ -422,8 +432,9 @@ object(self)
 
   method on_load()=
     iface#clear();
-    iface#init_from_xml_node v
+    iface#init_from_xml_node v;
 (*    iface#init_from_xml file *)
+    super#on_load();
 
   method on_loop()=
     super#on_loop();

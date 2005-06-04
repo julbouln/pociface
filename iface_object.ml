@@ -48,6 +48,8 @@ object(self)
   method set_parent (p:iface_object option)=parent<-p
   method get_parent=parent
 
+  method add_child (o:iface_object)=()
+
   val mutable embed=false
   method set_embed e=embed<-e
   method get_embed=embed
