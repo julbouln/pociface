@@ -217,12 +217,14 @@ object(self)
       
 
   method show()=
+    super#show();
     spr#get_graphics#foreach_object (
       fun gid gr->
 	gr#show()
     )
 
   method hide()=
+    super#hide();
     spr#get_graphics#foreach_object (
       fun gid gr->
 	gr#hide()
