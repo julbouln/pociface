@@ -17,6 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *)
 
+open Value_lua;;
+
 open Core_rect;;
 open Core_medias;;
 
@@ -51,7 +53,7 @@ class iface_graphic_button gr w h=
 
 (** sample button object with pattern *)
 class iface_pbutton rid npattern cpattern=
-object
+object(self)
   inherit iface_object 0 0 as super
 
   method grab_focus=true
@@ -65,12 +67,31 @@ object
   method on_mouseover x y=super#on_mouseover x y;is_mouseover<-true
   method on_mouseout x y=super#on_mouseout x y;is_mouseover<-false
 
+  val mutable push=false;
+
+  method private set_push()=
+    push<-true;
+
+  method private set_normal()=
+    push<-false;
+
+  method private set_clicked()=
+    is_clicked<-true
+
+  method private set_released()=
+    is_clicked<-false
+
   method on_click x y=
-    is_clicked<-true;
+    if push then
+      (if is_clicked then is_clicked<-false else is_clicked<-true)
+    else
+      is_clicked<-true;
+
     super#on_click x y
       
   method on_release x y=
-    is_clicked<-false;
+    if push=false then
+      is_clicked<-false;
     super#on_release x y 
 
   method show()=
@@ -98,6 +119,15 @@ object
     ngr#resize nw nh;
     cgr#resize nw nh;
     rect#set_size ngr#get_rect#get_w ngr#get_rect#get_h;    
+
+
+  method lua_init()=
+    lua#set_val (OLuaVal.String "set_push") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#set_push);
+    lua#set_val (OLuaVal.String "set_normal") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#set_normal);
+    super#lua_init();
+    lua#set_val (OLuaVal.String "set_clicked") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#set_clicked);
+    lua#set_val (OLuaVal.String "set_released") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.unit) self#set_released);
+
 end;;
 
 
@@ -105,6 +135,8 @@ end;;
 class iface_pbutton_with_label rid npattern cpattern fnt_t tcol txt=
 object(self)
     inherit iface_pbutton rid npattern cpattern as super
+
+   
 
     val mutable label=
       (new iface_label_static fnt_t tcol txt)
@@ -141,6 +173,51 @@ object(self)
       if showing==true then 
 	(
 	 label#put();
+	)
+
+  end;;
+
+
+(** button with label and pattern *)
+class iface_pbutton_with_icon rid npattern cpattern gr w h=
+object(self)
+    inherit iface_pbutton rid npattern cpattern as super
+
+    val mutable icon=
+      new iface_graphic_file_object gr w h
+	
+    method private init_size()=
+      let (bw,bh)=ngr#border_size in
+
+(*	print_string "PBUTTON: ";print_int (label#get_rect#get_h mod bh);print_newline(); *)
+	super#resize (icon#get_rect#get_w+(bw*2)) (icon#get_rect#get_h+(bh*2))
+
+    initializer
+      self#init_size();
+
+
+
+    method show()=
+      super#show();
+      icon#show();
+      
+    method hide()=
+      super#hide();
+      icon#show();
+
+    method move x y=
+      super#move x y;
+      let (bw,bh)=ngr#border_size in
+      let ah=(icon#get_rect#get_h mod bh)/2 and
+	  aw=(icon#get_rect#get_w mod bw)/2 in
+	icon#move (x+bw-aw) (y+bh-ah);
+
+    method put()=
+
+      super#put();
+      if showing==true then 
+	(
+	 icon#put();
 	)
 
   end;;

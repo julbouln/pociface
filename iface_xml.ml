@@ -180,6 +180,47 @@ object(self)
       (id,ofun)
 end;;
 
+
+
+(** iface button with label parser *)
+class xml_iface_button_with_icon_parser=
+object(self)
+  inherit xml_iface_object_parser as super
+ 
+(*  val mutable txt="" *)
+
+  method parse_child k v=
+    super#parse_child k v;
+(*    match k with
+      | "text" -> let p=(new xml_string_parser "str") in p#parse v;txt<-p#get_val
+      | _ -> ()    
+*)
+  method get_val=
+    let ofun()=
+      let args=args_parser#get_val in
+      let (iw,ih)=
+	if (args#is_val (`String "icon_size")) then
+	  size_of_val (args#get_val (`String "icon_size")) 
+	else (0,0)
+      and
+	  ifile=
+	if (args#is_val (`String "icon_file")) then
+	  string_of_val (args#get_val (`String "icon_file")) 
+	else "" in
+      let st=theme#get_style nm in
+	props#merge st;
+      let o=
+	new iface_pbutton_with_icon id 
+	  (iprop_pattern (props#get_prop "pattern_normal")) 
+	  (iprop_pattern (props#get_prop "pattern_clicked")) 
+	  ifile iw ih
+	   in
+	super#init_object o;
+	o
+    in
+      (id,ofun)
+end;;
+
 (** iface label parser *)
 class xml_iface_label_parser=
 object(self)

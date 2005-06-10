@@ -148,6 +148,7 @@ object(self)
 	      `Size(32,32);
 	      `Color(255,0,0)
 	    ];
+	  dr#exec_op_write_from_list "set_alpha" [`Color(255,255,255)];
 	[|dr|]
     )
     (*new graphic_real_object "selected" (tile_rect 32 32 (255,0,0))*)
@@ -230,6 +231,7 @@ object
        (fun()->
 	  let dr=drawing_vault#new_drawing() in
 	    dr#create w h c;
+	    dr#exec_op_create_from_list "box" [`Size(w,h);`Color c];
 	    [|dr|]
        )
     ) as super

@@ -242,18 +242,18 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
 
     method on_keypress (k,utfk)=
       te#parse k utfk;
-
-(*      (match (parse_key e.ebut) with
+(*
+      (match (parse_key e.ebut) with
       | KeyShift -> ()
       | _ -> 
-(*	  if UTF8.length te#get_text< lines*text#get_max_size then *)
-(*	  text#set_text te#get_text;
-	  if UTF8.length te#get_text<= text#lines_size text#get_lines then *)
-	    te#parse (parse_key e.ebut) (parse_unicode e.ey);
-(*	  text#set_text ""; *)
+	  (*	  if UTF8.length te#get_text< lines*text#get_max_size then *)
+	  (*	  text#set_text te#get_text;
+		  if UTF8.length te#get_text<= text#lines_size text#get_lines then *)
+	  te#parse (parse_key e.ebut) (parse_unicode e.ey);
+	  (*	  text#set_text ""; *)
       );
   
-*)    
+*)  
       self#set_data_text (te#get_text); 
 
 
