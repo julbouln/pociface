@@ -153,6 +153,11 @@ class interface=
       lua#set_val (OLuaVal.String "add_object_from_type") (OLuaVal.efunc (OLuaVal.string **-> OLuaVal.string **-> OLuaVal.int **-> OLuaVal.int **->> OLuaVal.unit) self#iface_add_object_from_type);
 
       lua#set_val (OLuaVal.String "add_object_from_type_to") (OLuaVal.efunc (OLuaVal.string **-> OLuaVal.string **-> OLuaVal.string **->> OLuaVal.unit) self#iface_add_object_from_type_to);
+
+      lua#set_val (OLuaVal.String "delete_object") (OLuaVal.efunc (OLuaVal.string **->> OLuaVal.unit) self#iface_del_object);
+      lua#set_val (OLuaVal.String "delete_object_from") (OLuaVal.efunc (OLuaVal.string **-> OLuaVal.string  **->> OLuaVal.unit) self#iface_del_object_from);
+
+
       lo#lua_init()
 
     val mutable focus="none"
@@ -177,14 +182,20 @@ class interface=
 	  co#add_child o
 
     method iface_add_object (name:string) (obj:iface_object)=
-
       self#lua_parent_of name (obj:>lua_object);
       self#add_object (Some name) obj;
       canvas#add_obj (obj:>canvas_object);
 
     method iface_del_object name=
+      lo#get_lua#del_val (OLuaVal.String name);
+      canvas#del_obj (self#iface_get_object name:>canvas_object);
       self#delete_object name;
-      canvas#del_obj (self#iface_get_object name:>canvas_object)
+
+    method iface_del_object_from (name:string) (c:string)=
+      let co=self#get_object c in
+	co#del_child name;
+	self#iface_del_object name;
+
 
     method iface_get_object n=
       (try 
@@ -335,7 +346,6 @@ class interface=
 	    
 	    o#on_click x y;
 	    ignore(o#get_lua#exec_val_fun (OLuaVal.String "on_click") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
-	      (*	ignore (interp#parse (o#get_id^".on_click("^string_of_int x^","^string_of_int y^")")) ; *)
 	      
 	  )
       )
@@ -349,7 +359,6 @@ class interface=
 	  if obj#is_showing==true then (
 	    obj#on_release x y;
 	    ignore(obj#get_lua#exec_val_fun (OLuaVal.String "on_release") [OLuaVal.Number (float_of_int x);OLuaVal.Number (float_of_int y)];)
-(*	    ignore (interp#parse (obj#get_id^".on_release("^string_of_int x^","^string_of_int y^")")) ; *)
 	  );
 	);
 	let ro=obj#get_release in

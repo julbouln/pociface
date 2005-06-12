@@ -562,6 +562,12 @@ object(self)
       o#set_parent (Some (self:>iface_object));
       o#set_layer (self#get_layer+1);
       self#reset_size(); 
+      if self#is_showing then
+	o#show()
+
+    method del_child oid=
+      self#delete_object oid;
+      self#reset_size(); 
 	
 end
 
@@ -573,6 +579,12 @@ object(self)
       ignore(self#add_object (try (Some o#get_id) with Object_id_not_set -> None) o);
       o#set_parent (Some (self:>iface_object));
       o#set_layer (self#get_layer+1);
+      self#reset_size(); 
+      if self#is_showing then
+	o#show()
+
+    method del_child oid=
+      self#delete_object oid;
       self#reset_size(); 
 
 end

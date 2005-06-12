@@ -48,7 +48,9 @@ object(self)
   method set_parent (p:iface_object option)=parent<-p
   method get_parent=parent
 
+
   method add_child (o:iface_object)=()
+  method del_child (id:string)=()				      
 
   val mutable embed=false
   method set_embed e=embed<-e
@@ -136,6 +138,9 @@ object(self)
     lua#set_val (OLuaVal.String "set_data_text") (OLuaVal.efunc (OLuaVal.string  **->> OLuaVal.unit) self#set_data_text);
     lua#set_val (OLuaVal.String "get_data_text") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.string) (fun()->self#get_data_text));
     lo#lua_init();
+
+    lua#set_val (OLuaVal.String "get_x") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_x));
+    lua#set_val (OLuaVal.String "get_y") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->rect#get_y));
 
     
 
