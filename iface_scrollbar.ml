@@ -19,6 +19,13 @@ object(self)
   val mutable max_obj=5
   method set_max_obj m=max_obj<-m
 
+    method hide()=
+      super#hide();
+      fggr#hide();
+      bggr#hide();
+      topbut#hide();
+      bottombut#hide();      
+
     method show()=
       self#hide();
       showing<-true;
@@ -30,11 +37,12 @@ object(self)
 			cobj:= !cobj+1;
 		      in f);
 
-	fggr#show();
-	bggr#show();
-	topbut#show();
-	bottombut#show();
-
+	if max_obj<self#objs_count then (
+	  fggr#show();
+	  bggr#show();
+	  topbut#show();
+	  bottombut#show();
+	)
     method put()=
 (*      super#put(); *)
       let cobj=ref 0 in
