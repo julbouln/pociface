@@ -134,6 +134,8 @@ object(self)
       | KeyAltR -> ()
       | KeyAltL -> ()
       | KeyAltGr -> () 
+      | KeyNumLock -> () 
+      | KeyCapsLock -> () 
       | _ ->
 	  match u with
 	    | KeyUnicode ch->let c=(UTF8.init 1 (fun i->ch)) in
