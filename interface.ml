@@ -447,6 +447,9 @@ object(self)
 (*    iface#init_from_xml file *)
     super#on_load();
 
+(*  method on_leave()=
+    iface#clear();
+*)
   method on_loop()=
     super#on_loop();
 
