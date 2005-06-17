@@ -272,6 +272,7 @@ object(self)
 
   method lua_init()=
     lua#set_val (OLuaVal.String "get_val") (OLuaVal.efunc (OLuaVal.unit **->> OLuaVal.int) (fun()->current_val));
+    lua#set_val (OLuaVal.String "set_val") (OLuaVal.efunc (OLuaVal.int **->> OLuaVal.unit) (fun v->current_val<-v;set_color v));
     super#lua_init();
 
 
