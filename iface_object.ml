@@ -19,6 +19,7 @@
 
 
 open Value_common;;
+open Value_object;;
 open Value_lua;;
 
 open Core_rect;;

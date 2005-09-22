@@ -21,6 +21,7 @@
 open Str;;
 
 open Value_common;;
+open Value_object;;
 open Value_val;;
 open Value_lua;;
 open Value_xml;;
