@@ -134,7 +134,7 @@ object(self)
 end;;
 
 (** xml iface property parser *)
-class xml_iface_prop_parser=
+class xml_iface_prop_parser drawing_vault=
 object(self)
   inherit xml_parser as super
 
@@ -151,11 +151,11 @@ object(self)
 	    p#parse n;
 	    let p2=(new xml_size_parser) in 
 	      p2#parse n;
-	    value<-IPropGraphic (fun()->(new graphic_from_file p#get_val p2#get_w p2#get_h))
+	    value<-IPropGraphic (fun()->(new graphic_from_file drawing_vault p#get_val p2#get_w p2#get_h))
       | "prop_pattern" -> 
 	  let p=(new xml_string_parser "path") in 
 	    p#parse n;
-	    value<-IPropPattern (fun()-> (new graphic_pattern_file p#get_val))
+	    value<-IPropPattern (fun()-> (new graphic_pattern_file drawing_vault p#get_val))
       | "prop_font" ->
 	  let p=(new xml_font_parser) in 
 	    p#parse n;
@@ -208,7 +208,7 @@ object(self)
 end;;
 
 (** xml iface properties parser *)
-class xml_iface_props_parser=
+class xml_iface_props_parser drawing_vault=
 object(self)
   inherit xml_parser as super
   val mutable props=new iface_properties
@@ -217,7 +217,7 @@ object(self)
 
   method parse_attr k v=()
   method parse_child k v=
-    let p=new xml_iface_prop_parser in
+    let p=new xml_iface_prop_parser drawing_vault in
       p#parse v;
       let prop=p#get_val in
       props#add_prop (fst prop) (snd prop)

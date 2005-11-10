@@ -33,7 +33,7 @@ open Iface_properties;;
 (** Interface theming *)
 
 (** xml iface style parser *)
-class xml_iface_style_parser=
+class xml_iface_style_parser drawing_vault=
 object(self)
   inherit xml_parser
   val mutable nm=""
@@ -48,13 +48,13 @@ object(self)
    
   method parse_child k v=
     match k with
-      | "properties" -> let p=(new xml_iface_props_parser) in p#parse v;props<-p#get_val
+      | "properties" -> let p=(new xml_iface_props_parser drawing_vault) in p#parse v;props<-p#get_val
       | _ -> ()
 
 end;;
 
 (** default pattern *)
-let default_pattern bgcol=
+let default_pattern drawing_vault bgcol=
   let dr=drawing_vault#new_drawing() in
     dr#create 24 24 bgcol;
   let (r,g,b)=bgcol in
@@ -118,7 +118,7 @@ let default_pattern bgcol=
     bg;;
 *)
 
-let default_pattern_clicked bgcol=
+let default_pattern_clicked drawing_vault bgcol=
   let dr=new default_drawing_object in
     dr#create 24 24 bgcol;
   let (r,g,b)=bgcol in
@@ -190,8 +190,8 @@ let default_graph w h bgcol bordcol=
     tile_free fg;
     bg;;
 *)
-let default_graph w h color=
-  new graphic_from_drawing "default_rect" (
+let default_graph drawing_vault w h color=
+  new graphic_from_drawing drawing_vault "default_rect" (
     fun()->
       let dr=drawing_vault#new_drawing() in
 	dr#exec_op_create_from_list "rect" 
@@ -204,19 +204,19 @@ let default_graph w h color=
 
 
 (** default style *)
-let get_default_style n=
+let get_default_style drawing_vault n=
 
   let props=new iface_properties in
     (match n with
        | "iface_text_edit" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default_pattern_text:simple"));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern_text:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
        | "iface_text_edit_box" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default_pattern_text:simple"));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern_text:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ]
@@ -237,29 +237,29 @@ let get_default_style n=
      
        | "iface_menu" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default_pattern:simple")));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern drawing_vault "default_pattern:simple")));
 	   ]
        | "iface_menubar" ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->(new graphic_pattern "default_pattern:simple")));
+	     ("pattern",IPropPattern  (fun()->(new graphic_pattern drawing_vault "default_pattern:simple")));
 	   ]
        | "iface_window" ->props#from_list
 	   [
-	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern "default_pattern:simple"));
-	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern "default_pattern_clicked:simple"));
-	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern "default_pattern_clicked:simple"));
+	     ("pattern_background",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern:simple"));
+	     ("pattern_title",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern_clicked:simple"));
+	     ("pattern_title_min",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern_clicked:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0));
-	     ("close_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
-	     ("minimize_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
-	     ("maximize_button",IPropGraphic  (fun()->default_graph 16 16 (0,0,0)));
+	     ("close_button",IPropGraphic  (fun()->default_graph drawing_vault 16 16 (0,0,0)));
+	     ("minimize_button",IPropGraphic  (fun()->default_graph drawing_vault 16 16 (0,0,0)));
+	     ("maximize_button",IPropGraphic  (fun()->default_graph drawing_vault 16 16 (0,0,0)));
 
 	   ];
        | _ ->props#from_list
 	   [
-	     ("pattern",IPropPattern  (fun()->new graphic_pattern "default_pattern:simple"));
-	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern "default_pattern:simple"));
-	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern "default_pattern_clicked:simple"));
+	     ("pattern",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern:simple"));
+	     ("pattern_normal",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern:simple"));
+	     ("pattern_clicked",IPropPattern  (fun()->new graphic_pattern drawing_vault "default_pattern_clicked:simple"));
 	     ("font",IPropFont (FontEmbed));
 	     ("foreground_color",IPropColor (0,0,0))
 	   ];
@@ -270,14 +270,14 @@ let get_default_style n=
 exception Iface_style_not_found of string;;
 
 (** iface theme *)
-class iface_theme (hs:(string,iface_properties) Hashtbl.t)=
+class iface_theme drawing_vault (hs:(string,iface_properties) Hashtbl.t)=
 object
   val mutable styles=hs
 
   method get_style n=
     (try
        Hashtbl.find styles n 
-     with Not_found -> get_default_style n)
+     with Not_found -> get_default_style drawing_vault n)
 (*raise (Iface_style_not_found n))*)
 
 

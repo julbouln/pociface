@@ -19,7 +19,6 @@
 
 
 
-open Core_video;;
 open Core_event;;
 open Core_medias;;
 

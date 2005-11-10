@@ -18,7 +18,6 @@
 *)
 
 
-open Core_video;;
 open Core_rect;;
 open Core_medias;;
 

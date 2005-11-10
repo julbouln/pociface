@@ -28,7 +28,6 @@ open Value_xml;;
 
 open Core_val;;
 open Core_rect;;
-open Core_video;;
 open Core_medias;;
 open Core_event;;
 open Core_drawing;;
@@ -57,7 +56,7 @@ object(self)
 end;;
 
 (** main iface class *)
-class interface=
+class interface drawing_vault=
   object (self)
     inherit [iface_object] generic_object_handler as super
 
@@ -77,14 +76,14 @@ class interface=
 	(
 	  fun vl->
 	    let col=color_of_val (List.nth vl 0) in
-	      [|default_pattern col|]
+	      [|default_pattern drawing_vault col|]
 	);
   
       drawing_vault#add_drawing_fun_from_list "default_pattern_clicked_fun"
 	(
 	  fun vl->
 	    let col=color_of_val (List.nth vl 0) in
-	      [|default_pattern_clicked col|]
+	      [|default_pattern_clicked drawing_vault col|]
 	);
     
       drawing_vault#add_cache_from_drawing_fun "default_pattern:simple"
@@ -111,27 +110,27 @@ class interface=
       self#init_default_pattern();
       self#lua_init();()
 
-    val mutable iface_parser=new xml_iface_parser 
+    val mutable iface_parser=new xml_iface_parser drawing_vault
 
     method init_all_parser p=
-	p#parser_add "iface_button" (fun()->new xml_iface_button_parser);
-	p#parser_add "iface_label" (fun()->new xml_iface_label_parser);
-	p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser);
-	p#parser_add "iface_button_with_icon" (fun()->new xml_iface_button_with_icon_parser);
-	p#parser_add "iface_text_box" (fun()->new xml_iface_text_box_parser);
-	p#parser_add "iface_text_edit_box" (fun()->new xml_iface_text_edit_box_parser);
-	p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser);
-	p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser);
-	p#parser_add "iface_graphic_object" (fun()->new xml_iface_graphic_object_parser);
-	p#parser_add "iface_vcontainer" (fun()->new xml_iface_vcontainer_parser self#iface_get_object);
-	p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser self#iface_get_object);
-	p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser self#iface_get_object);
-	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser self#iface_get_object);
-	p#parser_add "iface_color_toolbox" (fun()->new    xml_iface_color_toolbox_parser);
-	p#parser_add "iface_window" (fun()->new xml_iface_window_parser self#iface_get_object);
-	p#parser_add "iface_window_manager" (fun()->new xml_iface_window_manager_parser self#iface_get_object);
-	p#parser_add "iface_vscrollbar" (fun()->new xml_iface_vscrollbar_parser self#iface_get_object);
-	p#parser_add "iface_sprite" (fun()->new xml_iface_sprite_parser);
+	p#parser_add "iface_button" (fun()->new xml_iface_button_parser drawing_vault);
+	p#parser_add "iface_label" (fun()->new xml_iface_label_parser drawing_vault );
+	p#parser_add "iface_button_with_label" (fun()->new xml_iface_button_with_label_parser drawing_vault ) ;
+	p#parser_add "iface_button_with_icon" (fun()->new xml_iface_button_with_icon_parser drawing_vault );
+	p#parser_add "iface_text_box" (fun()->new xml_iface_text_box_parser drawing_vault );
+	p#parser_add "iface_text_edit_box" (fun()->new xml_iface_text_edit_box_parser drawing_vault );
+	p#parser_add "iface_text_edit" (fun()->new xml_iface_text_edit_parser drawing_vault );
+	p#parser_add "iface_password_edit" (fun()->new xml_iface_password_edit_parser drawing_vault );
+	p#parser_add "iface_graphic_object" (fun()->new xml_iface_graphic_object_parser drawing_vault );
+	p#parser_add "iface_vcontainer" (fun()->new xml_iface_vcontainer_parser drawing_vault self#iface_get_object);
+	p#parser_add "iface_hcontainer" (fun()->new xml_iface_hcontainer_parser drawing_vault self#iface_get_object);
+	p#parser_add "iface_menu" (fun()->new xml_iface_menu_parser drawing_vault self#iface_get_object);
+	p#parser_add "iface_menubar" (fun()->new xml_iface_menubar_parser drawing_vault self#iface_get_object);
+	p#parser_add "iface_color_toolbox" (fun()->new    xml_iface_color_toolbox_parser drawing_vault );
+	p#parser_add "iface_window" (fun()->new xml_iface_window_parser drawing_vault  self#iface_get_object);
+	p#parser_add "iface_window_manager" (fun()->new xml_iface_window_manager_parser drawing_vault  self#iface_get_object);
+	p#parser_add "iface_vscrollbar" (fun()->new xml_iface_vscrollbar_parser drawing_vault self#iface_get_object);
+	p#parser_add "iface_sprite" (fun()->new xml_iface_sprite_parser drawing_vault );
 
     method init_parser()=      
       let p=iface_parser in
@@ -424,11 +423,11 @@ class interface=
 
 open Core_graphic;;
 
-class iface_stage curs (v:xml_node)=
+class iface_stage drawing_vault curs (v:xml_node)=
 object(self)
-  inherit stage curs as super
+  inherit stage drawing_vault curs as super
 
-  val mutable iface=new interface 
+  val mutable iface=new interface drawing_vault
   method get_iface=iface
 
   (** graphic echange *)
@@ -492,9 +491,9 @@ end;;
 open Core_stage;;
 open Core_xml;;
 
-class xml_iface_stage_parser=
+class xml_iface_stage_parser drawing_vault=
 object (self)
-  inherit xml_stage_parser as super
+  inherit xml_stage_parser drawing_vault as super
 
   val mutable ifa=new xml_node
 
@@ -511,7 +510,7 @@ object (self)
     let ofun()=
       let o=
 	self#init_cursor();
-	new iface_stage curs ifa
+	new iface_stage drawing_vault curs ifa
       in
 	self#init_object (o:>stage);
 	(o:>stage)	  
@@ -520,8 +519,8 @@ object (self)
 
 end;;
 
-let xml_iface_stages_parser()=
-  let p=xml_factory_stages_parser() in
-    p#parser_add "iface_stage" (fun()->new xml_iface_stage_parser);
+let xml_iface_stages_parser drawing_vault=
+  let p=xml_factory_stages_parser drawing_vault in
+    p#parser_add "iface_stage" (fun()->new xml_iface_stage_parser drawing_vault);
     p;;
 

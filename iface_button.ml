@@ -133,14 +133,14 @@ end;;
 
 
 (** button with label and pattern *)
-class iface_pbutton_with_label rid npattern cpattern fnt_t tcol txt=
+class iface_pbutton_with_label drawing_vault rid npattern cpattern fnt_t tcol txt=
 object(self)
     inherit iface_pbutton rid npattern cpattern as super
 
    
 
     val mutable label=
-      (new iface_label_static fnt_t tcol txt)
+      (new iface_label_static drawing_vault fnt_t tcol txt)
 	
     method private init_size()=
       let (bw,bh)=ngr#border_size in
@@ -180,12 +180,12 @@ object(self)
 
 
 (** button with label and pattern *)
-class iface_pbutton_with_icon rid npattern cpattern gr w h=
+class iface_pbutton_with_icon drawing_vault rid npattern cpattern gr w h=
 object(self)
     inherit iface_pbutton rid npattern cpattern as super
 
     val mutable icon=
-      new iface_graphic_file_object gr w h
+      new iface_graphic_file_object drawing_vault gr w h
 	
     method private init_size()=
       let (bw,bh)=ngr#border_size in

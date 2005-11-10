@@ -66,10 +66,10 @@ object(self)
 end;;
 
 (** icon tool graphic with label *)
-class ['a] iface_tool_graphic_with_label (r:'a) fnt_t label gr=
+class ['a] iface_tool_graphic_with_label drawing_vault (r:'a) fnt_t label gr=
 object(self)
   inherit ['a] iface_tool_graphic r gr as super
-  val mutable lab=new iface_label_static fnt_t (0,0,0) label
+  val mutable lab=new iface_label_static drawing_vault fnt_t (0,0,0) label
 
   method private reset_size()=
     rect#set_size (gr#get_rect#get_w+lab#get_rect#get_w) (gr#get_rect#get_h);
@@ -96,22 +96,22 @@ end;;
 
 
 (** icon tool object *)
-class ['a] iface_tool_icon (r:'a) f w h iw ih=
+class ['a] iface_tool_icon drawing_vault (r:'a) f w h iw ih=
 object(self)
   inherit ['a] iface_tool_graphic r 
 (*(new graphic_real_resized_object (f^":icon") ((float_of_int w)/.(float_of_int iw)) ((float_of_int h)/.(float_of_int ih)) 
 (tiles_load f iw ih).(0)) 
 *)
-(new graphic_resized_from_file f 0 w h iw ih)
+(new graphic_resized_from_file drawing_vault f 0 w h iw ih)
 as super
 end;;
 
 
 (** icon tool icon with label *)
-class ['a] iface_tool_icon_with_label (r:'a) fnt_t label f w h iw ih=
+class ['a] iface_tool_icon_with_label drawing_vault (r:'a) fnt_t label f w h iw ih=
 object(self)
-  inherit ['a] iface_tool_icon (r) f w h iw ih as super
-    val mutable lab=new iface_label_static fnt_t (0,0,0) label
+  inherit ['a] iface_tool_icon drawing_vault (r) f w h iw ih as super
+    val mutable lab=new iface_label_static drawing_vault fnt_t (0,0,0) label
 
   method private reset_size()=
     rect#set_size (graphic#get_rect#get_w+lab#get_rect#get_w) (graphic#get_rect#get_h);
@@ -137,11 +137,11 @@ object(self)
 end;;
 
 (** generic toolbox object *)
-class virtual ['a] iface_toolbox (iv:'a) (c:('a) iface_tool array) =
+class virtual ['a] iface_toolbox drawing_vault (iv:'a) (c:('a) iface_tool array) =
 object(self)
   inherit [('a)iface_tool] iface_vcontainer c as super
   val mutable selected=
-    new graphic_from_drawing "selected" (
+    new graphic_from_drawing drawing_vault "selected" (
       fun()->
 	let dr=drawing_vault#new_drawing() in
 	  dr#exec_op_create_from_list "rect" 
@@ -223,12 +223,12 @@ let string_of_color c=
 
 (* tile cw ch *)
 (** iface tool color *)
-class iface_color_tool re (i:int) (c:color) w h=
+class iface_color_tool drawing_vault re (i:int) (c:color) w h=
 object
   inherit [int] iface_tool_graphic i
 (*    (new font_object "medias/Vera.ttf" 16) (string_of_color c)  *)
 (*    (new graphic_real_object (re^":"^string_of_color c) (tile_box w h c) *)
-    (new graphic_from_drawing (re^":"^string_of_color c) 
+    (new graphic_from_drawing drawing_vault (re^":"^string_of_color c) 
        (fun()->
 	  let dr=drawing_vault#new_drawing() in
 	    dr#create w h c;
@@ -239,9 +239,9 @@ object
 end;;
 
 (** iface toolbox color *)
-class iface_color_toolbox id (vc:v_color)  (set_color:int->unit)=
+class iface_color_toolbox drawing_vault id (vc:v_color)  (set_color:int->unit)=
 object(self)
-  inherit [int] iface_toolbox (0) 
+  inherit [int] iface_toolbox drawing_vault (0) 
     (
       let a=DynArray.create() in
 
@@ -251,7 +251,7 @@ object(self)
 	      if !r=0 then (
 		Array.iteri (
 		  fun i v->
-		    DynArray.add a (new iface_color_tool id i v 32 32)
+		    DynArray.add a (new iface_color_tool drawing_vault id i v 32 32)
 		) ca;
 		r:= !r+1;
 	      )

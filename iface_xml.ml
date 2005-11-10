@@ -43,7 +43,7 @@ open Iface_theme;;
 (** Interface xml parsers *)
 
 (** generic iface object parser *)
-class xml_iface_object_parser=
+class xml_iface_object_parser drawing_vault=
 object (self)
   inherit xml_parser
     
@@ -61,7 +61,7 @@ object (self)
   val mutable props=new iface_properties
 
 (** object related theme *)
-  val mutable theme=new iface_theme (Hashtbl.create 2)
+  val mutable theme=new iface_theme drawing_vault (Hashtbl.create 2)
   method set_theme t=theme<-t
 
   method parse_attr k v=
@@ -75,7 +75,7 @@ object (self)
   method parse_child k v=
     args_parser#parse_child k v;
     match k with
-      | "properties" -> let p=(new xml_iface_props_parser) in p#parse v;props<-p#get_val
+      | "properties" -> let p=(new xml_iface_props_parser drawing_vault) in p#parse v;props<-p#get_val
       | "script" -> lua<-v#pcdata;
 
 
@@ -103,7 +103,8 @@ object (self)
     o#move x y;
     if show then
       o#show();
-    o#move (main#f_size_w x) (main#f_size_h y);    
+(*    o#move (main#f_size_w x) (main#f_size_h y);    *)
+    o#move x y;    
     o#set_lua_script lua;
     
   method get_val=
@@ -126,9 +127,9 @@ end;;
 
 
 (** iface button parser *)
-class xml_iface_button_parser=
+class xml_iface_button_parser drawing_vault=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   method get_val=
     let ofun()=
@@ -147,9 +148,9 @@ object(self)
 end;;
 
 (** iface button with label parser *)
-class xml_iface_button_with_label_parser=
+class xml_iface_button_with_label_parser drawing_vault=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
  
 (*  val mutable txt="" *)
 
@@ -170,7 +171,7 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=
-	new iface_pbutton_with_label id 
+	new iface_pbutton_with_label drawing_vault id 
 	    (iprop_pattern (props#get_prop "pattern_normal")) 
 	    (iprop_pattern (props#get_prop "pattern_clicked")) 
 	    (iprop_font (props#get_prop "font")) 
@@ -185,9 +186,9 @@ end;;
 
 
 (** iface button with label parser *)
-class xml_iface_button_with_icon_parser=
+class xml_iface_button_with_icon_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
  
 (*  val mutable txt="" *)
 
@@ -212,7 +213,7 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=
-	new iface_pbutton_with_icon id 
+	new iface_pbutton_with_icon drawing_vault id 
 	  (iprop_pattern (props#get_prop "pattern_normal")) 
 	  (iprop_pattern (props#get_prop "pattern_clicked")) 
 	  ifile iw ih
@@ -224,9 +225,9 @@ object(self)
 end;;
 
 (** iface label parser *)
-class xml_iface_label_parser=
+class xml_iface_label_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
  
 (*  val mutable txt="" *)
 
@@ -247,7 +248,7 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=
-	new iface_label_static 
+	new iface_label_static drawing_vault
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
 	  txt
@@ -260,9 +261,9 @@ end;;
 
 
 (** iface text edit parser *)
-class xml_iface_text_edit_parser=
+class xml_iface_text_edit_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault  as super
  
   method get_val=
     let ofun()=
@@ -275,11 +276,11 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=	
-	new iface_text_edit id 
+	new iface_text_edit drawing_vault id 
 	    (iprop_pattern (props#get_prop "pattern")) 
 	    (iprop_font (props#get_prop "font")) 
 	    (iprop_color (props#get_prop "foreground_color")) 
-	  (main#f_size_w w) in
+	  (w) in
 	super#init_object o;
 	o
     in
@@ -287,9 +288,9 @@ object(self)
 end;;
 
 (** iface text box parser *)
-class xml_iface_text_box_parser=
+class xml_iface_text_box_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   method parse_child k v=
     super#parse_child k v;
@@ -317,11 +318,11 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=
-	new iface_text_box id 
+	new iface_text_box drawing_vault id 
 	  (iprop_pattern (props#get_prop "pattern")) 
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
-	  (main#f_size_w w) l in
+	  (w) l in
 	o#set_data_text text;
 	super#init_object o;
 	o
@@ -331,9 +332,9 @@ end;;
 
 
 (** iface text edit box parser *)
-class xml_iface_text_edit_box_parser=
+class xml_iface_text_edit_box_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   method parse_child k v=
     super#parse_child k v;
@@ -355,11 +356,11 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=	
-	new iface_text_edit_box id 
+	new iface_text_edit_box drawing_vault id 
 	  (iprop_pattern (props#get_prop "pattern")) 
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
-	  (main#f_size_w w) l in
+	  (w) l in
 	super#init_object o;
 	o
     in
@@ -367,9 +368,9 @@ object(self)
 end;;
 
 (** iface password edit parser *)
-class xml_iface_password_edit_parser=
+class xml_iface_password_edit_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
  
   method get_val=
     let ofun()=
@@ -383,11 +384,11 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=
-	new iface_password_edit id 
+	new iface_password_edit drawing_vault id 
 	  (iprop_pattern (props#get_prop "pattern")) 
 	  (iprop_font (props#get_prop "font")) 
 	  (iprop_color (props#get_prop "foreground_color")) 
-	  (main#f_size_w w) in
+	  (w) in
 	super#init_object o;
 	o
     in
@@ -395,9 +396,9 @@ object(self)
 end;;
 
 (** iface graphic object parser *)
-class xml_iface_graphic_object_parser=
+class xml_iface_graphic_object_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   method parse_child k v=
     super#parse_child k v;
@@ -414,7 +415,7 @@ object(self)
 	if (args#is_val (`String "file")) then
 	  string_of_val (args#get_val (`String "file")) 
 	else "" in
-      let o=new iface_graphic_file_object file w h in
+      let o=new iface_graphic_file_object drawing_vault file w h in
 	super#init_object o;
 	o
     in
@@ -422,9 +423,9 @@ object(self)
 end;;
 
 (** iface vcontainer parser *)
-class xml_iface_vcontainer_parser get_obj=
+class xml_iface_vcontainer_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable container=Array.create 1 "none"
 
@@ -480,9 +481,9 @@ object(self)
 end;;
 
 (** iface hcontainer parser *)
-class xml_iface_hcontainer_parser get_obj=
+class xml_iface_hcontainer_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable container=Array.create 1 "none"
 
@@ -584,9 +585,9 @@ let to_menu mt layer get_obj=
       menu;;
 
 (** iface menu parser *)
-class xml_iface_menu_parser get_obj=
+class xml_iface_menu_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable menu_t=("none",[])
 
@@ -623,9 +624,9 @@ end;;
 
 
 (** iface menubar parser *)
-class xml_iface_menubar_parser get_obj=
+class xml_iface_menubar_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable menu_t_arr=[||]
 
@@ -660,9 +661,9 @@ end;;
 
 
 (** iface xml toolbox parser *)
-class xml_iface_color_toolbox_parser=
+class xml_iface_color_toolbox_parser drawing_vault=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
 (*  val mutable file="none" *)
 
@@ -679,7 +680,7 @@ object(self)
     let ofun()=
 
       let o=
-	(new iface_color_toolbox id vc  (fun i->()) :>iface_object)
+	(new iface_color_toolbox drawing_vault id vc  (fun i->()) :>iface_object)
       in
 	super#init_object o;
 	o
@@ -688,9 +689,9 @@ object(self)
 end;;
 
 (** iface window parser *)
-class xml_iface_window_parser get_obj=
+class xml_iface_window_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable cid=""
 (*  val mutable txt="" *)
@@ -713,7 +714,7 @@ object(self)
       let st=theme#get_style nm in
 	props#merge st;
       let o=	
-	new iface_window id 
+	new iface_window drawing_vault id 
 	  (iprop_pattern (props#get_prop "pattern_title")) 
 	  (iprop_pattern (props#get_prop "pattern_title_min")) 
 	  (iprop_pattern (props#get_prop "pattern_background")) 
@@ -733,9 +734,9 @@ end;;
 
 
 (** iface window manager parser *)
-class xml_iface_window_manager_parser get_obj=
+class xml_iface_window_manager_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable container=Array.create 1 "none"
 
@@ -794,9 +795,9 @@ end;;
 
 
 (** iface vcontainer parser *)
-class xml_iface_vscrollbar_parser get_obj=
+class xml_iface_vscrollbar_parser drawing_vault get_obj=
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
   val mutable container=Array.create 1 "none"
 
@@ -861,11 +862,11 @@ end;;
 
 open Core_sprite;;
 
-class xml_iface_sprite_parser=
+class xml_iface_sprite_parser drawing_vault =
 object(self)
-  inherit xml_iface_object_parser as super
+  inherit xml_iface_object_parser drawing_vault as super
 
-  val mutable spr_parser=new xml_sprite_object_type_parser
+  val mutable spr_parser=new xml_sprite_object_type_parser drawing_vault
 
   method parse_child k v=
     super#parse_child k v;
@@ -923,23 +924,23 @@ end;;
 *)
 
 (** xml iface theme parser *)
-class xml_iface_theme_parser=
+class xml_iface_theme_parser drawing_vault=
 object(self)
-  inherit [iface_properties] xml_stringhash_parser "iface_style" (fun()->new xml_iface_style_parser)
+  inherit [iface_properties] xml_stringhash_parser "iface_style" (fun()->new xml_iface_style_parser drawing_vault)
 
-  method get_val=new iface_theme self#get_hash
+  method get_val=new iface_theme drawing_vault self#get_hash
 
 end;;
 
 
-let iface_theme_from_xml f=
+let iface_theme_from_xml drawing_vault f=
 (*  let iface_xml=new xml_node (Xml.parse_file f) in *)
   let iface_xml=xml_node_from_file f in
-  let p=new xml_iface_theme_parser in
+  let p=new xml_iface_theme_parser drawing_vault in
     p#parse iface_xml;
     p#get_val;;
 
-class xml_iface_objects_generic_parser=
+class xml_iface_objects_generic_parser drawing_vault=
 object(self)
   inherit xml_parser
 
@@ -954,7 +955,7 @@ object(self)
      with
 	 Not_found -> raise (Xml_iface_parser_not_found n))
 
-  val mutable theme=new iface_theme (Hashtbl.create 2)
+  val mutable theme=new iface_theme drawing_vault (Hashtbl.create 2)
   method set_theme t=theme<-t
   method get_style s=theme#get_style s    
   
@@ -966,13 +967,13 @@ object(self)
   method parse_child k v=()      
 end;;
 
-class xml_iface_objects_parser=
+class xml_iface_objects_parser drawing_vault=
 object(self)
-  inherit xml_iface_objects_generic_parser
+  inherit xml_iface_objects_generic_parser drawing_vault
 
   method parse_child k v=
     match k with
-      | "iface_object" -> let p=new xml_iface_object_parser in p#parse v;
+      | "iface_object" -> let p=new xml_iface_object_parser drawing_vault in p#parse v;
 	  if self#parser_is p#get_type then
 	    let sp=(self#parser_get p#get_type)() in
 	      sp#set_theme theme;
@@ -993,14 +994,14 @@ object(self)
       
 end;;
 
-class xml_iface_objects_types_parser=
+class xml_iface_objects_types_parser drawing_vault=
 object(self)
-  inherit xml_iface_objects_generic_parser
+  inherit xml_iface_objects_generic_parser drawing_vault
 
   method parse_child k v=
     match k with
       | "iface_object_type" -> 
-	  let p=new xml_iface_object_parser in p#parse v;
+	  let p=new xml_iface_object_parser drawing_vault in p#parse v;
 	  print_string ("IFACE_XML: parse object type "^p#get_id);print_newline(); 
 	  if self#parser_is p#get_type then
 	    let sp=(self#parser_get p#get_type)() in
@@ -1020,12 +1021,12 @@ object(self)
       
 end;;
 
-class xml_iface_parser=
+class xml_iface_parser drawing_vault=
 object
   inherit xml_parser
-  val mutable objs_parser=new xml_iface_objects_parser
-  val mutable objs_types_parser=new xml_iface_objects_types_parser
-  val mutable theme_parser=new xml_iface_theme_parser 
+  val mutable objs_parser=new xml_iface_objects_parser drawing_vault
+  val mutable objs_types_parser=new xml_iface_objects_types_parser drawing_vault
+  val mutable theme_parser=new xml_iface_theme_parser drawing_vault
 
   method init_parsers (pf:xml_iface_objects_generic_parser->unit)=
     pf (objs_parser:>xml_iface_objects_generic_parser);

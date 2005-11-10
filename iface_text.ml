@@ -24,7 +24,6 @@ open Str;;
 open Value_val;;
 
 open Core_rect;;
-open Core_video;;
 open Core_drawing;;
 open Core_medias;;
 open Core_graphic;;
@@ -45,11 +44,11 @@ let text_split s=
 
 
 (** label_static object *)
-class iface_label_static fnt_t color txt=
+class iface_label_static drawing_vault fnt_t color txt=
   object
     inherit iface_graphic_object  
     (
-      new graphic_object_text fnt_t [txt] color
+      new graphic_object_text drawing_vault fnt_t [txt] color
 (*      new graphic_real_object 
 
        ("label/static/"^txt^":"^(string_of_int fnt#get_size)^":"
@@ -149,12 +148,12 @@ end;;
 
 
 (** text box *)
-class iface_text_box rid bpgraph fnt_t color bw il=
+class iface_text_box drawing_vault rid bpgraph fnt_t color bw il=
 object(self)
     inherit iface_object bw 0 as super
 
     val mutable bg=new iface_pgraphic_object bpgraph
-    val mutable text=new graphic_text (rid^"/text_box") fnt_t color
+    val mutable text=new graphic_text drawing_vault (rid^"/text_box") fnt_t color
     val mutable fnt=(font_vault#get_cache_simple ((get_font_id fnt_t)^string_of_int (get_font_size fnt_t)))
 
     initializer
@@ -214,14 +213,14 @@ object(self)
 end;;
 
 (** text edit box *)
-class iface_text_edit_box rid bptile fnt_t color bw il=
+class iface_text_edit_box drawing_vault rid bptile fnt_t color bw il=
   object (self)
-    inherit iface_text_box rid bptile fnt_t color bw il as super
+    inherit iface_text_box drawing_vault rid bptile fnt_t color bw il as super
     val mutable te=new text_edit
-    val mutable cursor=new graphic_object
+    val mutable cursor=new graphic_object drawing_vault 
 
     initializer
-      cursor<-new graphic_from_drawing "cursor" (
+      cursor<-new graphic_from_drawing  drawing_vault "cursor" (
 	fun()->
 	  let dr=drawing_vault#new_drawing() in
 	    dr#exec_op_create_from_list "rect" 
@@ -300,15 +299,15 @@ class iface_text_edit_box rid bptile fnt_t color bw il=
   end;;
 
 (** text edit object 1 line *)
-class iface_text_edit rid bptile fnt_t color bw=
+class iface_text_edit drawing_vault rid bptile fnt_t color bw=
 object
-  inherit iface_text_edit_box rid bptile fnt_t color bw 1 as super
+  inherit iface_text_edit_box drawing_vault rid bptile fnt_t color bw 1 as super
 end
 
 (** password edit object *)
-class iface_password_edit rid bptile fnt_t color bw=
+class iface_password_edit drawing_vault rid bptile fnt_t color bw=
   object (self)
-    inherit iface_text_edit rid bptile fnt_t color bw as super
+    inherit iface_text_edit drawing_vault rid bptile fnt_t color bw as super
       
     method set_data_text t=
       let tmp=ref "" in
