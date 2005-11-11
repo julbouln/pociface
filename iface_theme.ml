@@ -119,7 +119,7 @@ let default_pattern drawing_vault bgcol=
 *)
 
 let default_pattern_clicked drawing_vault bgcol=
-  let dr=new default_drawing_object in
+  let dr=drawing_vault#new_drawing() in
     dr#create 24 24 bgcol;
   let (r,g,b)=bgcol in
   let lcol=(r+16,g+16,b+16) and
