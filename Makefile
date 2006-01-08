@@ -1,6 +1,6 @@
 OCAMLMAKEFILE = OCamlMakefile
 
-PACKS=poccore
+PACKS=camomile poccore
 
 LIBINSTALL_FILES=*.cmi *.cmo *.cmx *.a pociface.cma pociface.cmxa
 

@@ -88,12 +88,12 @@ object(self)
 
   val mutable utf=new utf8
 
-  method utf_length=UTF8.length text
+  method utf_length=Camomile.UTF8.length text
 
   val mutable cur_pos=0;
   method get_cur_pos=cur_pos
-  method get_cur_utf_pos=UTF8.nth text cur_pos
-  method get_utf_pos n=UTF8.nth text n
+  method get_cur_utf_pos=Camomile.UTF8.nth text cur_pos
+  method get_utf_pos n=Camomile.UTF8.nth text n
 
   method insert_char c=
     let p1=String.sub text 0 (self#get_cur_utf_pos) and
@@ -104,17 +104,17 @@ object(self)
     text<-String.concat "" [text;c];
 
   method del_last_char()=
-    if (UTF8.length text > 0) then
-      text<-String.sub text 0 (UTF8.last text);
+    if (Camomile.UTF8.length text > 0) then
+      text<-String.sub text 0 (Camomile.UTF8.last text);
 
   method del_cur_char()=
-    if (UTF8.length text > 0) then (
+    if (Camomile.UTF8.length text > 0) then (
       let p1=String.sub text 0 (self#get_utf_pos (cur_pos-1)) and
 	  p2=String.sub text (self#get_cur_utf_pos) (String.length text - self#get_cur_utf_pos) in
 	text<-String.concat "" [p1;p2]
     )
   method set_text t=
-    cur_pos<-UTF8.length t;
+    cur_pos<-Camomile.UTF8.length t;
 (*    cur_pos<-0; *)
     text<-t
 
@@ -138,7 +138,7 @@ object(self)
       | KeyCapsLock -> () 
       | _ ->
 	  match u with
-	    | KeyUnicode ch->let c=(UTF8.init 1 (fun i->ch)) in
+	    | KeyUnicode ch->let c=(Camomile.UTF8.init 1 (fun i->ch)) in
 		self#insert_char c;cur_pos<-cur_pos + 1;
 	    | _ ->()
 

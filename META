@@ -1,5 +1,5 @@
 description = "Pocengine graphical interface"
-requires = "poccore"
+requires = "poccore,camomile"
 version = "0.3.0"
 archive(byte) = "pociface.cma"
 archive(native) = "pociface.cmxa"
